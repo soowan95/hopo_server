@@ -32,7 +32,7 @@ spring:
       max-request-size: 10MB
   config:
     activate:
-      on-profile: profile1
+      on-profile: p1
     import: custom_dev.yml
 springdoc:
   default-consumes-media-type: application/json;charset=UTF-8
