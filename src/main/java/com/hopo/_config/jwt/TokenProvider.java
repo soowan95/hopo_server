@@ -1,4 +1,4 @@
-package com.hopo.config.jwt;
+package com.hopo._config.jwt;
 
 import java.security.Key;
 import java.util.Arrays;
@@ -17,8 +17,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import com.hopo.user.dto.response.TokenInfoResponse;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -61,7 +59,7 @@ public class TokenProvider implements InitializingBean {
 	}
 
 	// Autentication 객체의 권한 정보를 이용해서 토큰을 생성
-	public TokenInfoResponse createToken(Authentication authentication) {
+	public TokenInfo createToken(Authentication authentication) {
 
 		System.out.println("createToken");
 
@@ -89,7 +87,7 @@ public class TokenProvider implements InitializingBean {
 			.setExpiration(refreshValidity)
 			.compact();
 
-		return TokenInfoResponse.builder()
+		return TokenInfo.builder()
 			.grantType("Bearer")
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
@@ -108,7 +106,7 @@ public class TokenProvider implements InitializingBean {
 			.compact();
 	}
 
-	public TokenInfoResponse oauthToken(UserDetails userDetails) {
+	public TokenInfo oauthToken(UserDetails userDetails) {
 
 		System.out.println("oauthToken");
 
@@ -130,7 +128,7 @@ public class TokenProvider implements InitializingBean {
 			.setExpiration(refreshValidity)
 			.compact();
 
-		return TokenInfoResponse.builder()
+		return TokenInfo.builder()
 			.grantType("Bearer")
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)

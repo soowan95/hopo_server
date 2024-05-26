@@ -1,10 +1,10 @@
-package com.hopo.user.dto.response;
+package com.hopo._config.jwt;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 @Schema(description = "Token 정보 응답")
-public class TokenInfoResponse {
+public class TokenInfo {
 
 	@Schema(description = "JWT 인증 타입")
 	private String grantType;
@@ -14,7 +14,7 @@ public class TokenInfoResponse {
 	private String refreshToken;
 
 	@Builder
-	public TokenInfoResponse(String grantType, String accessToken, String refreshToken) {
+	public TokenInfo(String grantType, String accessToken, String refreshToken) {
 		this.grantType = grantType;
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;

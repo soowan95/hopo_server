@@ -1,4 +1,4 @@
-package com.hopo.config;
+package com.hopo._config;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class SwaggerConfig {
 	public OpenAPI openAPI() {
 		Info info = new Info()
 			.title("hopo API Documentation")
-			.version("v0.0.1")
+			.version("v1.0.0")
 			.description("hopo API 명세서입니다.");
 
 		SecurityScheme securityScheme = new SecurityScheme()

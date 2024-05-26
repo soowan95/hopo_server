@@ -1,4 +1,4 @@
-package com.hopo.config.jwt;
+package com.hopo._config.jwt;
 
 import java.io.IOException;
 

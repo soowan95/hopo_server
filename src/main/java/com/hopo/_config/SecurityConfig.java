@@ -1,4 +1,4 @@
-package com.hopo.config;
+package com.hopo._config;
 
 import java.util.Collections;
 
@@ -16,8 +16,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import com.hopo.config.jwt.JwtAuthenticationEntryPoint;
-import com.hopo.config.jwt.JwtFilter;
+import com.hopo._config.jwt.JwtAuthenticationEntryPoint;
+import com.hopo._config.jwt.JwtFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,13 +28,13 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	private static final String[] PERMIT_URL_ARRAY = {
-		"/v3/api-docs/**",
+		"/api-docs/**",
 		"/swagger-ui/**",
 		"/swagger-resources/**",
-		"/swagger-resources",
+		"/favicon.ico",
 		"/hopo-ui.html",
-		"/webjars/**",
-		"/"
+		"/h2-console/**",
+		"/api/belong/make_code" // 회원가입 시 코드 생성
 	};
 
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
