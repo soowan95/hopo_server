@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.hopo._global.repository.HopoRepository;
 
-public interface BelongRepository extends JpaRepository<Belong, String>, HopoRepository<Belong, String, String> {
+public interface BelongRepository extends JpaRepository<Belong, String>, HopoRepository<Belong, String> {
 
 	Optional<Belong> findByCode(String code);
 }

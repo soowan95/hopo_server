@@ -25,7 +25,7 @@ class BelongServiceTest {
 	@Test
 	@DisplayName("소속 코드 생성")
 	public void makeBelongCode() throws Exception {
-		String code = belongService.makeCode();
+		String code = belongService.makeCode("서울특별시");
 		System.out.println("-------------------code-------------------------");
 		System.out.println(code);
 		assertThat(code).isNotNull();

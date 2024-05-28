@@ -7,19 +7,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hopo._global.exception.CustomException;
 import com.hopo._global.exception.CustomExceptionEnum;
+import com.hopo._global.service.HopoService;
 import com.hopo.belong.Belong;
 import com.hopo.belong.BelongRepository;
 import com.hopo.belong.dto.request.SaveBelongRequest;
 import com.hopo.belong.dto.request.UpdateBelongRequest;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
 @Transactional
-@RequiredArgsConstructor
-public class BelongServiceImpl implements BelongService {
+public class BelongServiceImpl extends HopoService<BelongRepository, Belong, String> implements BelongService {
 
 	private final BelongRepository belongRepository;
+
+	public BelongServiceImpl(BelongRepository repository) {
+		super(repository);
+		this.belongRepository = repository;
+	}
 
 	@Override
 	public void save(SaveBelongRequest saveBelongRequest) {
@@ -47,7 +50,8 @@ public class BelongServiceImpl implements BelongService {
 	}
 
 	@Override
-	public String makeCode() {
+	public String makeCode(String address) {
+		if (checkDuplicate("address", address)) return "가족 구성원이 맞습니까?";
 		StringBuilder code = new StringBuilder();
 		String specialChar = "!@#$%=";
 
@@ -60,7 +64,7 @@ public class BelongServiceImpl implements BelongService {
 			else code.append(specialChar.charAt(new Random().nextInt(specialChar.length())));
 		}
 
-		belongRepository.findByCode(code.toString()).ifPresent(a -> makeCode());
+		belongRepository.findByCode(code.toString()).ifPresent(a -> makeCode(address));
 
 		return code.toString();
 	}

@@ -9,15 +9,15 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class HopoRepositoryImpl<E, K, V> implements HopoRepository<E, K, V>{
+public class HopoRepositoryImpl<E, V> implements HopoRepository<E, V>{
 
 	private final JPAQueryFactory queryFactory;
 	private final PathBuilder<E> entityPath;
 
 	@Override
-	public Optional<E> findByParam(K k, V v) {
+	public Optional<E> findByParam(String property, V v) {
 		JPAQuery<E> query = queryFactory.selectFrom(entityPath)
-			.where(entityPath.get(k.toString()).eq(v));
+			.where(entityPath.get(property).eq(v));
 
 		return Optional.ofNullable(query.fetchOne());
 	}
