@@ -13,16 +13,14 @@ import com.hopo.belong.BelongRepository;
 import com.hopo.belong.dto.request.SaveBelongRequest;
 import com.hopo.belong.dto.request.UpdateBelongRequest;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class BelongServiceImpl extends HopoService<BelongRepository, Belong, String> implements BelongService {
 
 	private final BelongRepository belongRepository;
-
-	public BelongServiceImpl(BelongRepository repository) {
-		super(repository);
-		this.belongRepository = repository;
-	}
 
 	@Override
 	public void save(SaveBelongRequest saveBelongRequest) {
