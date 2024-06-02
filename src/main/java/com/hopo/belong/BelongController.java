@@ -2,13 +2,15 @@ package com.hopo.belong;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hopo.belong.dto.request.MakeCodeRequest;
 import com.hopo.belong.dto.request.SaveBelongRequest;
+import com.hopo.belong.dto.response.CodeResponse;
 import com.hopo.belong.service.BelongServiceImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +34,7 @@ public class BelongController {
 
 	@GetMapping("/make_code")
 	@Operation(summary = "소속 코드 발급", description = "주소 중복 확인: true -> 소속 구성원 확인, false -> 새로운 소속 코드 발급")
-	public ResponseEntity<String> makeCode(@RequestParam String address) {
-		return ResponseEntity.ok(belongService.makeCode(address));
+	public ResponseEntity<CodeResponse> makeCode(@ModelAttribute MakeCodeRequest makeCodeRequest) {
+		return ResponseEntity.ok(belongService.makeCode(makeCodeRequest));
 	}
 }

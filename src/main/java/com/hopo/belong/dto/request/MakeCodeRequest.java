@@ -8,12 +8,9 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-@Schema(description = "주소 갱신 요청")
-public class UpdateBelongRequest {
+@Schema(name = "코드 발급 요청")
+public class MakeCodeRequest {
 
-	@Schema(description = "기존 그룹 코드")
-	String code;
-
-	@Schema(description = "갱신할 주소")
-	String address;
+	@Schema(name = "주소")
+	private String address;
 }
