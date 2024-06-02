@@ -2,9 +2,11 @@ package com.hopo.belong.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 @AllArgsConstructor
 @Schema(description = "그룹 생성 요청")
 public class SaveBelongRequest {

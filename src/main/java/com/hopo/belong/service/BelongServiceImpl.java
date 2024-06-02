@@ -10,8 +10,10 @@ import com.hopo._global.exception.CustomExceptionEnum;
 import com.hopo._global.service.HopoService;
 import com.hopo.belong.Belong;
 import com.hopo.belong.BelongRepository;
+import com.hopo.belong.dto.request.MakeCodeRequest;
 import com.hopo.belong.dto.request.SaveBelongRequest;
 import com.hopo.belong.dto.request.UpdateBelongRequest;
+import com.hopo.belong.dto.response.CodeResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,22 +50,24 @@ public class BelongServiceImpl extends HopoService<BelongRepository, Belong, Str
 	}
 
 	@Override
-	public String makeCode(String address) {
-		if (checkDuplicate("address", address)) return "가족 구성원이 맞습니까?";
-		StringBuilder code = new StringBuilder();
+	public CodeResponse makeCode(MakeCodeRequest makeCodeRequest) {
+		if (checkDuplicate("address", makeCodeRequest.getAddress())) return CodeResponse.builder().code("가족 구성원이 맞습니까?").build();
+		StringBuilder newCode = new StringBuilder();
 		String specialChar = "!@#$%=";
 
-		while (code.length() <= 9) {
+		while (newCode.length() <= 9) {
 			double random = Math.random();
 
-			if (random < 0.25) code.append(new Random().nextInt(10));
-			else if (random < 0.5) code.append((char) (new Random().nextInt(26) + 'a'));
-			else if (random < 0.75) code.append((char) (new Random().nextInt(26) + 'A'));
-			else code.append(specialChar.charAt(new Random().nextInt(specialChar.length())));
+			if (random < 0.25) newCode.append(new Random().nextInt(10));
+			else if (random < 0.5) newCode.append((char) (new Random().nextInt(26) + 'a'));
+			else if (random < 0.75) newCode.append((char) (new Random().nextInt(26) + 'A'));
+			else newCode.append(specialChar.charAt(new Random().nextInt(specialChar.length())));
 		}
 
-		belongRepository.findByCode(code.toString()).ifPresent(a -> makeCode(address));
+		belongRepository.findByCode(newCode.toString()).ifPresent(a -> makeCode(makeCodeRequest));
 
-		return code.toString();
+		return CodeResponse.builder()
+			.code(newCode.toString())
+			.build();
 	}
 }
