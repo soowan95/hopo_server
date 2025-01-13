@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,11 +23,11 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class TokenProvider implements InitializingBean {
-
-	private static final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
 
 	private static final String AUTHORITIES_KEY = "auth";
 
@@ -171,11 +169,11 @@ public class TokenProvider implements InitializingBean {
 			Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
 			return true;
 		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-			logger.info("잘못된 JWT 토큰 서명");
+			log.info("잘못된 JWT 토큰 서명");
 		} catch (UnsupportedJwtException e) {
-			logger.info("지원되지 않은 JWT 토큰");
+			log.info("지원되지 않은 JWT 토큰");
 		} catch (IllegalArgumentException e) {
-			logger.info("잘못된 JWT 토큰");
+			log.info("잘못된 JWT 토큰");
 		}
 		return false;
 	}
