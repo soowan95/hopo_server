@@ -34,7 +34,9 @@ public class SecurityConfig {
 		"/favicon.ico",
 		"/hopo-ui.html",
 		"/h2-console/**",
-		"/api/belong/make_code" // 회원가입 시 코드 생성
+		"/api/belong/make_code", // 회원 가입 시 코드 생성
+		"/api/belong/is_family", // 회원 가입 시 주소 확인
+		"/api/member/sign_up" // 회원 가입
 	};
 
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
