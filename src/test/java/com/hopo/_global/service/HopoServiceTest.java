@@ -1,4 +1,4 @@
-package com.hopo.service.hopo;
+package com.hopo._global.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -15,11 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.hopo._global.exception.CustomException;
-import com.hopo._global.exception.ValidateException;
+import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
-import com.hopo._global.service.HopoService;
-import com.hopo.member.entity.Member;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("p1")
@@ -45,7 +42,7 @@ public class HopoServiceTest {
 
 	@Test
 	@DisplayName("단건 정보 조회")
-	public void show() throws ValidateException {
+	public void show() {
 		// Given
 		when(hopoRepository.findByParam(someProperty, someValue)).thenReturn(Optional.of(someEntity));
 
@@ -64,11 +61,11 @@ public class HopoServiceTest {
 
 		// Then
 		assertThatThrownBy(() -> hopoService.checkDuplicate(someProperty, someValue))
-			.isInstanceOf(CustomException.class)
+			.isInstanceOf(HttpCodeHandleException.class)
 			.satisfies(e -> {
-				CustomException customException = (CustomException) e;
-				assertThat(customException.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-				assertThat(customException.getMsg()).isEqualTo("이미 사용 중인 아이디입니다.");
+				HttpCodeHandleException httpCodeHandleException = (HttpCodeHandleException) e;
+				assertThat(httpCodeHandleException.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+				assertThat(httpCodeHandleException.getMsg()).isEqualTo("이미 사용 중인 아이디입니다.");
 			});
 
 		// Verify

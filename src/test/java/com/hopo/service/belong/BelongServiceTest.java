@@ -12,9 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import com.hopo._config.annotation.ServiceTest;
-import com.hopo._global.exception.CustomException;
+import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo.belong.dto.request.SaveBelongRequest;
-import com.hopo.belong.dto.response.FamilyNameResponse;
 import com.hopo.belong.dto.response.CodeResponse;
 import com.hopo.belong.dto.response.SaveBelongResponse;
 import com.hopo.belong.entity.Belong;
@@ -59,7 +58,7 @@ public class BelongServiceTest {
 
 
 		// When
-		assertThatThrownBy(() -> belongService.save(request)).isInstanceOf(CustomException.class);
+		assertThatThrownBy(() -> belongService.save(request)).isInstanceOf(HttpCodeHandleException.class);
 	}
 
 	@Test

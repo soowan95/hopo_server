@@ -5,6 +5,12 @@ spring:
     group:
       dev: p1
       prod: p2
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 ---
 spring:
   h2:
