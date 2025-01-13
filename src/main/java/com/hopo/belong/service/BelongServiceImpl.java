@@ -5,39 +5,40 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hopo._global.exception.CustomException;
-import com.hopo._global.exception.CustomExceptionEnum;
+import com.hopo._global.exception.HttpCodeHandleException;
+import com.hopo._global.exception.HttpCodeHandleExceptionEnum;
 import com.hopo._global.service.HopoService;
-import com.hopo.belong.Belong;
-import com.hopo.belong.BelongRepository;
-import com.hopo.belong.dto.request.MakeCodeRequest;
 import com.hopo.belong.dto.request.SaveBelongRequest;
 import com.hopo.belong.dto.request.UpdateBelongRequest;
+import com.hopo.belong.dto.response.FamilyNameResponse;
 import com.hopo.belong.dto.response.CodeResponse;
-
-import lombok.RequiredArgsConstructor;
+import com.hopo.belong.dto.response.SaveBelongResponse;
+import com.hopo.belong.entity.Belong;
+import com.hopo.belong.repository.BelongRepository;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
-public class BelongServiceImpl extends HopoService<BelongRepository, Belong, String> implements BelongService {
+public class BelongServiceImpl extends HopoService<BelongRepository, Belong> implements BelongService {
 
 	private final BelongRepository belongRepository;
 
-	@Override
-	public void save(SaveBelongRequest saveBelongRequest) {
-		Belong belong = Belong.builder()
-			.code(saveBelongRequest.getCode())
-			.address(saveBelongRequest.getAddress())
-			.isCompany(saveBelongRequest.isCompany())
-			.build();
+	public BelongServiceImpl(BelongRepository belongRepository) {
+		super(belongRepository);
+		this.belongRepository = belongRepository;
+	}
 
-		belongRepository.save(belong);
+	@Override
+	public SaveBelongResponse save(SaveBelongRequest saveBelongRequest) {
+		checkDuplicate("code", saveBelongRequest.getCode());
+
+		Belong belong = belongRepository.save(new SaveBelongRequest().map(saveBelongRequest));
+
+		return new SaveBelongResponse().of(belong);
 	}
 
 	@Override
 	public Belong findByCode(String code) {
-		return belongRepository.findByCode(code).orElseThrow(() -> new CustomException(CustomExceptionEnum.NOT_EXIST_CODE));
+		return belongRepository.findByCode(code).orElseThrow(() -> new HttpCodeHandleException("NOT_EXIST_CODE"));
 	}
 
 	@Override
@@ -50,8 +51,7 @@ public class BelongServiceImpl extends HopoService<BelongRepository, Belong, Str
 	}
 
 	@Override
-	public CodeResponse makeCode(MakeCodeRequest makeCodeRequest) {
-		if (checkDuplicate("address", makeCodeRequest.getAddress())) return CodeResponse.builder().code("가족 구성원이 맞습니까?").build();
+	public CodeResponse makeCode(String address) {
 		StringBuilder newCode = new StringBuilder();
 		String specialChar = "!@#$%=";
 
@@ -64,10 +64,16 @@ public class BelongServiceImpl extends HopoService<BelongRepository, Belong, Str
 			else newCode.append(specialChar.charAt(new Random().nextInt(specialChar.length())));
 		}
 
-		belongRepository.findByCode(newCode.toString()).ifPresent(a -> makeCode(makeCodeRequest));
+		belongRepository.findByCode(newCode.toString()).ifPresent(a -> makeCode(address));
 
 		return CodeResponse.builder()
 			.code(newCode.toString())
 			.build();
+	}
+
+	@Override
+	public FamilyNameResponse findFamilyName(String address) {
+		Belong belong = belongRepository.findByParam("address", address).orElseThrow(() -> new HttpCodeHandleException("NOT_EXIST_BELONG"));
+		return FamilyNameResponse.builder().familyNames(belong.getSpaces().stream().map(a -> a.getMember().getMaskData("name")).toList()).build();
 	}
 }

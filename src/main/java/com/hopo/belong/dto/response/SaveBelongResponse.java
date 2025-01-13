@@ -1,4 +1,4 @@
-package com.hopo.belong.dto.request;
+package com.hopo.belong.dto.response;
 
 import com.hopo._global.dto.HopoDto;
 import com.hopo.belong.entity.Belong;
@@ -14,11 +14,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "그룹 생성 요청")
-public class SaveBelongRequest extends HopoDto<SaveBelongRequest, Belong> {
+@Schema(name = "생성된 소속 코드 응답")
+public class SaveBelongResponse extends HopoDto<SaveBelongResponse, Belong> {
 
-	@Schema(description = "그룹코드")
+	@Schema(name = "생성된 소속 코드")
 	private String code;
-	@Schema(description = "주소")
-	private String address;
 }
