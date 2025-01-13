@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -14,7 +13,7 @@ import org.mockito.Spy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.hopo._config.annotation.ServiceTest;
-import com.hopo._global.exception.CustomException;
+import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo.member.repository.MemberRepository;
 import com.hopo.member.dto.request.SignUpRequest;
 import com.hopo.member.dto.response.MemberResponse;
@@ -88,7 +87,7 @@ public class MemberServiceTest {
 		when(memberRepository.findByParam("id", newMemberId)).thenReturn(Optional.of(mockMember));
 
 		// Then
-		assertThatThrownBy(() -> memberService.checkDuplicate("id", newMemberId)).isInstanceOf(CustomException.class);
+		assertThatThrownBy(() -> memberService.checkDuplicate("id", newMemberId)).isInstanceOf(HttpCodeHandleException.class);
 	}
 
 	@Test

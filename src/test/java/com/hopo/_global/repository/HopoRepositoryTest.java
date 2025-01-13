@@ -1,4 +1,4 @@
-package com.hopo.repository.hopo;
+package com.hopo._global.repository;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
