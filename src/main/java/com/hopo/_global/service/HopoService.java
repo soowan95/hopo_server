@@ -1,14 +1,55 @@
 package com.hopo._global.service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.List;
+
+import com.hopo._global.dto.HopoDto;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public class HopoService<R extends HopoRepository<E>, E> {
+@NoArgsConstructor(force = true)
+public class HopoService<E, ID> {
 
-	private final R repository;
+	private final HopoRepository<E, ID> repository;
+
+	public HopoService(HopoRepository<E, ID> repository) {
+		this.repository = repository;
+	}
+
+	/**
+	 * 엔터티 저장
+	 * @param request {@link HopoDto HopoDto} 를 상속받은 Class
+	 * @return boolean
+	 * @param <D> {@link HopoDto HopoDto} 를 상속받은 Class
+	 */
+	public <D> boolean save(D request) {
+		try {
+			// HopoDto 타입인지 확인
+			if (request instanceof HopoDto<?, ?> dto) {
+				// map 메서드 가져오기
+				Method mapMethod = dto.getClass().getDeclaredMethod("map", dto.getClass());
+				// map 메서드 실행
+				E entity = (E) mapMethod.invoke(dto, dto);
+
+				// 엔터티 저장
+				repository.save(entity);
+				return true;
+			}
+		} catch (NoSuchMethodException | IllegalAccessException e) {
+			throw new RuntimeException("데이터 저장에 실패했습니다.", e);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			throw new RuntimeException("데이터 저장 중 예외 발생: " + cause.getMessage(), cause);
+		}
+		return false;
+	}
+
 
 	/**
 	 * 단건 조회

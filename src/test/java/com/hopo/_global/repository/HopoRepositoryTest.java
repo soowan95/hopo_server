@@ -10,11 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.hopo._global.repository.HopoRepositoryImpl;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -25,7 +23,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 public class HopoRepositoryTest {
 
 	@InjectMocks
-	private HopoRepositoryImpl<Object> hopoRepository;
+	private CustomHopoRepositoryImpl<Object> hopoRepository;
 
 	@Mock
 	private JPAQueryFactory queryFactory;

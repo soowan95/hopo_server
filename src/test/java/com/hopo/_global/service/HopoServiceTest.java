@@ -15,8 +15,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.hopo._global.dto.HopoDto;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("p1")
@@ -27,10 +34,10 @@ public class HopoServiceTest {
 	static Object someValue;
 
 	@InjectMocks
-	private HopoService<HopoRepository<Object>, Object> hopoService;
+	private HopoService<Object, Object> hopoService;
 
 	@Mock
-	private HopoRepository<Object> hopoRepository;
+	private HopoRepository<Object, Object> hopoRepository;
 
 	@BeforeAll
 	public static void setup() {
@@ -38,6 +45,42 @@ public class HopoServiceTest {
 		someEntity = new Object();
 		someProperty = "someProperty";
 		someValue = new Object();
+	}
+
+	@Data
+	@AllArgsConstructor
+	@Builder
+	public static class TestEntity {
+		private String name;
+		private int age;
+	}
+
+	@EqualsAndHashCode(callSuper = true)
+	@Data
+	@Builder
+	@AllArgsConstructor
+	@NoArgsConstructor
+	static class TestDto extends HopoDto<TestDto, TestEntity> {
+		private String name;
+		private int age;
+
+		@Override
+		public TestEntity map(TestDto testDto) {
+			return new TestEntity(testDto.getName(), testDto.getAge());
+		}
+	}
+
+	@Test
+	@DisplayName("요청데이터를 맵핑하여 entity 로 저장")
+	public void save_shouldMapRequestToEntityAndSave() {
+		// Given
+		TestDto testDto = new TestDto("김수완", 30);
+
+		// When
+		boolean isSaved = hopoService.save(testDto);
+
+		// Then
+		assertThat(isSaved).isTrue();
 	}
 
 	@Test

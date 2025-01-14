@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Transactional
-public class HopoRepositoryImpl<E> implements HopoRepository<E>{
+public class CustomHopoRepositoryImpl<E> implements CustomHopoRepository<E> {
 
 	private final JPAQueryFactory queryFactory;
 	private final PathBuilder<E> entityPath;

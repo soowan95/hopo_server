@@ -6,7 +6,7 @@ import java.util.Optional;
  * 최상위 Repository Class
  * @param <E> entity
  */
-public interface HopoRepository<E> {
+public interface CustomHopoRepository<E> {
 	/**
 	 * column 과 data 로 entity 를 가져온다
 	 * @param property {@link String String} column 명
