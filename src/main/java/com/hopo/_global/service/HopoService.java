@@ -2,16 +2,13 @@ package com.hopo._global.service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
 
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @NoArgsConstructor(force = true)
 public class HopoService<E, ID> {
@@ -38,6 +35,7 @@ public class HopoService<E, ID> {
 				E entity = (E) mapMethod.invoke(dto, dto);
 
 				// 엔터티 저장
+				assert repository != null;
 				repository.save(entity);
 				return true;
 			}
@@ -58,8 +56,14 @@ public class HopoService<E, ID> {
 	 * @return entity
 	 */
 	public E show(String property, Object v) {
+		assert repository != null;
 		return repository.findByParam(property, v)
 			.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
+	}
+
+	public List<E> showAll() {
+		assert repository != null;
+		return repository.findAll();
 	}
 
 	/**
@@ -74,6 +78,7 @@ public class HopoService<E, ID> {
 			case "id" -> "DUPLICATE_ID";
 			default -> "NO_SUCH_PROPERTY";
 		};
+		assert repository != null;
 		repository.findByParam(property, v).ifPresent(e -> {
 			throw new HttpCodeHandleException(exceptionCode);
 		});
