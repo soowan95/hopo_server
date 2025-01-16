@@ -73,6 +73,17 @@ public class HopoServiceTest {
 		public TestEntity map(TestDto testDto) {
 			return new TestEntity(testDto.getName(), testDto.getAge());
 		}
+
+		@Override
+		public TestEntity map(TestEntity testEntity, TestDto testDto) {
+			testEntity.setAge(testDto.getAge());
+			return testEntity;
+		}
+
+		@Override
+		public Object[] get(Integer index) {
+			return new Object[] { "name", name };
+		}
 	}
 
 	@Test
@@ -113,6 +124,22 @@ public class HopoServiceTest {
 		// Then
 		assertThat(entityList).isNotNull();
 		assertThat(entityList.size()).isEqualTo(3);
+	}
+
+	@Test
+	@DisplayName("데이터 갱신")
+	public void update_shouldUpdateEntity() {
+		// Given
+		TestEntity testEntity = new TestEntity("김수완", 30);
+		TestDto testDto = new TestDto("김수완", 29);
+		when(hopoRepository.findByParam("name", "김수완")).thenReturn(Optional.of(testEntity));
+
+		// When
+		boolean isUpdated = hopoService.update(testDto);
+
+		// Then
+		assertThat(isUpdated).isTrue();
+		assertThat(testEntity.age).isEqualTo(29);
 	}
 
 	@Test

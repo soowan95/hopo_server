@@ -10,9 +10,20 @@ public class HopoStringUtils {
 	 * @return String
 	 */
 	public static String capitalize(String property) {
-		if (property.isEmpty() || property.isBlank())
+		if (property.isBlank())
 			return null;
-		return property.substring(0, 1).toUpperCase() + property.substring(1).toLowerCase();
+		return property.substring(0, 1).toUpperCase() + property.substring(1);
+	}
+
+	/**
+	 * filed name 을 가져오기 위해 첫글자 소문자화
+	 * @param property {@link String String} 카멜케이스*
+	 * @return String
+	 */
+	public static String uncapitalize(String property) {
+		if (property.isBlank())
+			return null;
+		return property.substring(0, 1).toLowerCase() + property.substring(1);
 	}
 
 	/**

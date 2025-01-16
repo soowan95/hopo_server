@@ -2,6 +2,7 @@ package com.hopo._global.dto;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import lombok.AllArgsConstructor;
@@ -31,6 +32,7 @@ class HopoDtoTest {
 	}
 
 	@Test
+	@DisplayName("entity 를 DTO 로 맵핑한다")
 	void of_shouldMapEntityToDto() {
 		// Given
 		TestEntity entity = new TestEntity("김수완", 30);
@@ -45,6 +47,7 @@ class HopoDtoTest {
 	}
 	
 	@Test
+	@DisplayName("DTO 를 entity 로 맵핑한다")
 	void map_shouldMapDtoToEntity() {
 		// Given
 		TestDto request = new TestDto("김수완", 30);
@@ -56,5 +59,19 @@ class HopoDtoTest {
 		assertThat(entity).isNotNull();
 		assertThat(entity.getName()).isEqualTo("김수완");
 		assertThat(entity.getAge()).isEqualTo(30);
+	}
+
+	@Test
+	@DisplayName("index 번째 있는 값을 가져온다")
+	void get_shouldReturnValueAtIndex() {
+		// Given
+		TestDto request = new TestDto("김수완", 30);
+
+		// When
+		Object[] firstValue = request.get(0);
+
+		// Then
+		assertThat(firstValue[0]).isEqualTo("name");
+		assertThat(firstValue[1]).isEqualTo("김수완");
 	}
 }
