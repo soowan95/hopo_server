@@ -14,12 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 public class Hopo {
 	/**
 	 * 숨김 처리한 data 를 가져온다
-	 * @param property {@link String String} column 명
+	 * @param field {@link String String} column 명
 	 * @return String
 	 */
-	public String getMaskData(String property) {
+	public String getMaskData(String field) {
 		try {
-			String methodName = "get" + HopoStringUtils.capitalize(property);
+			String methodName = "get" + HopoStringUtils.capitalize(field);
 
 			Method method = this.getClass().getMethod(methodName);
 

@@ -5,16 +5,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hopo._global.service.HopoService;
-import com.hopo.member.repository.MemberRepository;
 import com.hopo.member.dto.request.SignUpRequest;
 import com.hopo.member.dto.response.MemberResponse;
 import com.hopo.member.entity.Member;
-
-import lombok.RequiredArgsConstructor;
+import com.hopo.member.repository.MemberRepository;
 
 @Service
 @Transactional
-public class MemberServiceImpl extends HopoService<MemberRepository, Member> implements MemberService {
+public class MemberServiceImpl extends HopoService<Member, String> implements MemberService {
 
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder bCryptPasswordEncoder;

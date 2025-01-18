@@ -6,19 +6,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hopo._global.exception.HttpCodeHandleException;
-import com.hopo._global.exception.HttpCodeHandleExceptionEnum;
 import com.hopo._global.service.HopoService;
 import com.hopo.belong.dto.request.SaveBelongRequest;
 import com.hopo.belong.dto.request.UpdateBelongRequest;
-import com.hopo.belong.dto.response.FamilyNameResponse;
 import com.hopo.belong.dto.response.CodeResponse;
+import com.hopo.belong.dto.response.FamilyNameResponse;
 import com.hopo.belong.dto.response.SaveBelongResponse;
 import com.hopo.belong.entity.Belong;
 import com.hopo.belong.repository.BelongRepository;
 
 @Service
 @Transactional
-public class BelongServiceImpl extends HopoService<BelongRepository, Belong> implements BelongService {
+public class BelongServiceImpl extends HopoService<Belong, String> implements BelongService {
 
 	private final BelongRepository belongRepository;
 

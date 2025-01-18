@@ -10,11 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.hopo._global.repository.HopoRepositoryImpl;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -25,7 +23,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 public class HopoRepositoryTest {
 
 	@InjectMocks
-	private HopoRepositoryImpl<Object> hopoRepository;
+	private CustomHopoRepositoryImpl<Object> hopoRepository;
 
 	@Mock
 	private JPAQueryFactory queryFactory;
@@ -38,23 +36,23 @@ public class HopoRepositoryTest {
 
 	@Test
 	@DisplayName("프로퍼티 명과 값으로 엔터티 찾기")
-	public void findByPropertyNameAndValue() {
+	public void findByParam_shouldFindByParam() {
 		// Given
 		Object someEntity = new Object();
-		String someProperty = "someProperty";
+		String someField = "someField";
 		Object someValue = new Object();
 
 		BooleanExpression booleanExpression = mock(BooleanExpression.class);
 		PathBuilder<Object> pathBuilderMock = mock(PathBuilder.class);
 
 		when(queryFactory.selectFrom(entityPath)).thenReturn(jpaQuery);
-		when(entityPath.get(someProperty)).thenReturn(pathBuilderMock);
+		when(entityPath.get(someField)).thenReturn(pathBuilderMock);
 		when(pathBuilderMock.eq(someValue)).thenReturn(booleanExpression);
 		when(jpaQuery.where(booleanExpression)).thenReturn(jpaQuery);
 		when(jpaQuery.fetchOne()).thenReturn(someEntity);
 
 		// When
-		Optional<Object> result = hopoRepository.findByParam(someProperty, someValue);
+		Optional<Object> result = hopoRepository.findByParam(someField, someValue);
 
 		// Then
 		assertThat(Optional.of(someEntity)).isEqualTo(result);
