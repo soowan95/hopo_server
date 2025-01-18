@@ -47,13 +47,13 @@ public class HopoService<E extends Hopo, ID> {
 
 	/**
 	 * 단건 조회
-	 * @param field {@link String String} column 명
-	 * @param v {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
+	 * @param request {@link HopoDto HopoDto} column 명
 	 * @return entity
 	 */
-	public E show(String field, Object v) {
+	public E show(HopoDto request) {
+		Object[] args = request.get(0);
 		assert repository != null;
-		return repository.findByParam(field, v)
+		return repository.findByParam(args[0].toString(), args[1])
 			.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
 	}
 

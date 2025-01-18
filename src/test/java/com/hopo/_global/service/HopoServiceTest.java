@@ -31,7 +31,7 @@ public class HopoServiceTest {
 	@InjectMocks
 	private HopoService<TestEntity, Integer> hopoService;
 
-	@Spy
+	@Mock
 	private HopoRepository<TestEntity, Integer> hopoRepository;
 
 	@BeforeAll
@@ -48,7 +48,6 @@ public class HopoServiceTest {
 		private int age;
 	}
 
-	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@Builder
 	@AllArgsConstructor
@@ -87,28 +86,30 @@ public class HopoServiceTest {
 	@Test
 	@DisplayName("단건 정보 조회")
 	public void show_sholdReturnEntity() {
-		// // Given
-		// when(hopoRepository.findByParam(someField, someValue)).thenReturn(Optional.of(someEntity1));
-		//
-		// // When
-		// Object thisEntity = hopoService.show(someField, someValue);
-		//
-		// // Then
-		// assertThat(thisEntity).isNotNull();
+		// Given
+		TestEntity testEntity = new TestEntity(1, "김수완", 30);
+		TestDto testDto = new TestDto(1, "김수완", 30);
+		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
+
+		// When
+		Object thisEntity = hopoService.show(testDto);
+
+		// Then
+		assertThat(thisEntity).isNotNull();
 	}
 
 	@Test
 	@DisplayName("모든 정보 조회")
 	public void showAll_shouldReturnAllEntity() {
-	// 	// Given
-	// 	when(hopoRepository.findAll()).thenReturn(List.of(someEntity1, someEntity2, someEntity3));
-	//
-	// 	// When
-	// 	List<TestEntity> entityList = hopoService.showAll();
-	//
-	// 	// Then
-	// 	assertThat(entityList).isNotNull();
-	// 	assertThat(entityList.size()).isEqualTo(3);
+		// Given
+		when(hopoRepository.findAll()).thenReturn(List.of(new TestEntity(1, "김수완", 30), new TestEntity(2, "박수희", 29)));
+
+		// When
+		List<TestEntity> entityList = hopoService.showAll();
+
+		// Then
+		assertThat(entityList).isNotNull();
+		assertThat(entityList.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -145,7 +146,6 @@ public class HopoServiceTest {
 	@Test
 	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복")
 	public void checkDuplicate_shouldThrowException_whenDuplicate() {
-		// When
 		TestEntity testEntity = new TestEntity(1, "김수완", 30);
 		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
 
