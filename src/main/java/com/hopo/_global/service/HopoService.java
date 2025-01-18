@@ -3,8 +3,10 @@ package com.hopo._global.service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 import com.hopo._global.dto.HopoDto;
+import com.hopo._global.entity.Hopo;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
 
@@ -18,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @NoArgsConstructor(force = true)
 @Slf4j
-public class HopoService<E, ID> {
+public class HopoService<E extends Hopo, ID> {
 
 	private final HopoRepository<E, ID> repository;
 
@@ -31,27 +33,15 @@ public class HopoService<E, ID> {
 	 * @param request {@link HopoDto HopoDto}
 	 * @return boolean
 	 */
-	public <D> boolean save(D request) {
+	public E save(HopoDto request) {
 		try {
-			// HopoDto 타입인지 확인
-			if (request instanceof HopoDto<?, ?> dto) {
-				// map 메서드 가져오기
-				Method mapMethod = dto.getClass().getDeclaredMethod("map", dto.getClass());
-				// map 메서드 실행
-				E entity = (E) mapMethod.invoke(dto, dto);
-
-				// 엔터티 저장
-				assert repository != null;
-				repository.save(entity);
-				return true;
-			}
-		} catch (NoSuchMethodException | IllegalAccessException e) {
-			throw new HttpCodeHandleException(500, "데이터 저장에 실패했습니다." + e.getMessage());
-		} catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			throw new HttpCodeHandleException(500, "데이터 저장 중 예외 발생: " + cause.getMessage());
+			assert repository != null;
+			System.out.println(request.map(request));
+			return repository.save((E) request.map(request));
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			throw new HttpCodeHandleException(500, "데이터 저장에 실패했습니다. \n Message: " + e.getMessage());
 		}
-		return false;
 	}
 
 
@@ -81,32 +71,17 @@ public class HopoService<E, ID> {
 	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
 	 * @return boolean
 	 */
-	public <D> boolean update(D request) {
+	public E update(HopoDto request) {
 		try {
-			// HopoDto 타입인지 확인
-			if (request instanceof HopoDto<?, ?> dto) {
-				// get 메서드 가져오기
-				Method getMethod = dto.getClass().getDeclaredMethod("get", Integer.class);
-				// get 메서드 실행
-				Object[] args = (Object[]) getMethod.invoke(dto, 0);
-				assert repository != null;
-				E entity = repository.findByParam(args[0].toString(), args[1])
-					.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
-
-				// map 메서드 가져오기
-				Method mapMethod = dto.getClass().getDeclaredMethod("map", entity.getClass(), dto.getClass());
-				// map 메서드 실행
-				E updatedEntity = (E) mapMethod.invoke(dto, entity, dto);
-
-				// 엔터티 저장
-				repository.save(updatedEntity);
-				return true;
-			}
-		} catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-			log.error("Cause : " + e.getCause() + ", msg : " + e.getMessage());
-			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다." + e.getMessage());
+			Object[] args = request.get(0);
+			assert repository != null;
+			E entity = repository.findByParam(args[0].toString(), args[1])
+				.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
+			return repository.save((E) request.map(entity, request));
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다. \n Message: " + e.getMessage());
 		}
-		return false;
 	}
 
 	/**
@@ -114,21 +89,14 @@ public class HopoService<E, ID> {
 	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
 	 * @return boolean
 	 */
-	public <D> boolean delete(D request) {
+	public <D> boolean delete(HopoDto request) {
 		try {
-			if (request instanceof HopoDto<?, ?> dto) {
-				// get 메서드 가져오기
-				Method getMethod = dto.getClass().getDeclaredMethod("get", Integer.class, String.class);
-				// get 메서드 실행
-				ID id = (ID) getMethod.invoke(dto, 0, "value");
-				assert repository != null;
-				repository.deleteById(id);
-				return true;
-			}
-		} catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-			throw new HttpCodeHandleException(500, "데이터 삭제 중 문제가 발생했습니다." + e.getMessage());
+			repository.deleteById((ID) request.get(0, "value"));
+			return true;
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			throw new HttpCodeHandleException(500, "데이터 삭제 중 문제가 발생했습니다. \n Message: " + e.getMessage());
 		}
-		return false;
 	}
 
 	/**

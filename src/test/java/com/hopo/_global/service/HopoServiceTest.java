@@ -3,20 +3,19 @@ package com.hopo._global.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import com.hopo._global.dto.HopoDto;
+import com.hopo._global.entity.Hopo;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
 
@@ -39,10 +38,11 @@ public class HopoServiceTest {
 	public static void setup() {
 	}
 
+	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@AllArgsConstructor
 	@Builder
-	public static class TestEntity {
+	public static class TestEntity extends Hopo {
 		private Integer id;
 		private String name;
 		private int age;
@@ -62,8 +62,8 @@ public class HopoServiceTest {
 	@Builder
 	@AllArgsConstructor
 	@NoArgsConstructor
-  public static class DeleteTestDto extends HopoDto<TestDto, TestEntity> {
-		private String name;
+	public static class DeleteTestDto extends HopoDto<TestDto, TestEntity> {
+		private Integer id;
 	}
 
 	@Test
@@ -71,12 +71,16 @@ public class HopoServiceTest {
 	public void save_shouldMapRequestToEntityAndSave() {
 		// Given
 		TestDto testDto = new TestDto(1, "김수완", 30);
+		when(hopoRepository.save(any(TestEntity.class))).thenReturn(testDto.map(testDto));
 
 		// When
-		boolean isSaved = hopoService.save(testDto);
+		TestEntity savedEntity = hopoService.save(testDto);
 
 		// Then
-		assertThat(isSaved).isTrue();
+		assertThat(savedEntity).isNotNull();
+		assertThat(savedEntity.id).isEqualTo(testDto.getId());
+		assertThat(savedEntity.name).isEqualTo(testDto.getName());
+		assertThat(savedEntity.age).isEqualTo(testDto.getAge());
 	}
 
 	@Test
@@ -113,22 +117,24 @@ public class HopoServiceTest {
 	public void update_shouldUpdateEntity() {
 		// Given
 		TestEntity testEntity = new TestEntity(1, "김수완", 30);
-		TestDto testDto = new TestDto(1, "김수완", 29);
-		when(hopoRepository.findByParam("name", "김수완")).thenReturn(Optional.of(testEntity));
+		TestDto testDto = new TestDto(1, "박수희", 29);
+		when(hopoRepository.findByParam(any(String.class), any(Object.class))).thenReturn(Optional.of(testEntity));
+		when(hopoRepository.save(any(TestEntity.class))).thenReturn(testEntity);
 
 		// When
-		boolean isUpdated = hopoService.update(testDto);
+		TestEntity updatedEntity = hopoService.update(testDto);
 
 		// Then
-		assertThat(isUpdated).isTrue();
-		assertThat(testEntity.age).isEqualTo(29);
+		assertThat(updatedEntity).isNotNull();
+		assertThat(testEntity.name).isEqualTo(updatedEntity.name);
+		assertThat(testEntity.age).isEqualTo(updatedEntity.age);
 	}
 
 	@Test
 	@DisplayName("데이터 삭제")
 	public void delete_shouldDeleteEntity() {
 		// Given
-		DeleteTestDto deleteRequest = new DeleteTestDto("김수완");
+		DeleteTestDto deleteRequest = new DeleteTestDto(1);
 
 		// When
 		boolean isDeleted = hopoService.delete(deleteRequest);
@@ -140,34 +146,34 @@ public class HopoServiceTest {
 	@Test
 	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복")
 	public void checkDuplicate_shouldThrowException_whenDuplicate() {
-		// // When
-		// when(hopoRepository.findByParam("id", someValue)).thenReturn(Optional.of(someEntity1));
-		//
-		// // Then
-		// assertThatThrownBy(() -> hopoService.checkDuplicate("id", someValue))
-		// 	.isInstanceOf(HttpCodeHandleException.class)
-		// 	.satisfies(e -> {
-		// 		HttpCodeHandleException httpCodeHandleException = (HttpCodeHandleException) e;
-		// 		assertThat(httpCodeHandleException.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
-		// 		assertThat(httpCodeHandleException.getMsg()).isEqualTo("이미 사용 중인 아이디입니다.");
-		// 	});
-		//
-		// // Verify
-		// verify(hopoRepository).findByParam("id", someValue);
+		TestEntity testEntity = new TestEntity(1, "김수완", 30);
+		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
+
+		// Then
+		assertThatThrownBy(() -> hopoService.checkDuplicate("id", 1))
+			.isInstanceOf(HttpCodeHandleException.class)
+			.satisfies(e -> {
+				HttpCodeHandleException httpCodeHandleException = (HttpCodeHandleException) e;
+				assertThat(httpCodeHandleException.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+				assertThat(httpCodeHandleException.getMsg()).isEqualTo("이미 사용 중인 아이디입니다.");
+			});
+
+		// Verify
+		verify(hopoRepository).findByParam("id", 1);
 	}
 
 	@Test
 	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복 아님")
 	public void checkDuplicate_shouldReturnTrue() {
-		// // When
-		// when(hopoRepository.findByParam(someField, someValue)).thenReturn(Optional.empty());
-		//
-		// Boolean result = hopoService.checkDuplicate(someField, someValue);
-		//
-		// // Then
-		// assertThat(result).isTrue();
-		//
-		// // Verify
-		// verify(hopoRepository).findByParam(someField, someValue);
+		// When
+		when(hopoRepository.findByParam("id", 2)).thenReturn(Optional.empty());
+
+		Boolean result = hopoService.checkDuplicate("id", 2);
+
+		// Then
+		assertThat(result).isTrue();
+
+		// Verify
+		verify(hopoRepository).findByParam("id", 2);
 	}
 }
