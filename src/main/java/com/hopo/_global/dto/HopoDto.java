@@ -146,6 +146,7 @@ public class HopoDto<D, E> {
 				cnt++; // 카운터 증가
 			}
 		} catch (InvocationTargetException | IllegalAccessException e) {
+			log.error(e.getMessage());
 			throw new HttpCodeHandleException(500, e.getMessage());
 		}
 		return new Object[]{field, value};

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.annotations.ColumnDefault;
 
+import com.hopo._global.entity.Hopo;
 import com.hopo.space.entity.Space;
 
 import jakarta.persistence.Column;
@@ -21,7 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Belong {
+public class Belong extends Hopo {
 
 	@Id
 	@Column(name="code", unique = true, nullable = false)
