@@ -36,23 +36,23 @@ public class HopoRepositoryTest {
 
 	@Test
 	@DisplayName("프로퍼티 명과 값으로 엔터티 찾기")
-	public void findByPropertyNameAndValue() {
+	public void findByParam_shouldFindByParam() {
 		// Given
 		Object someEntity = new Object();
-		String someProperty = "someProperty";
+		String someField = "someField";
 		Object someValue = new Object();
 
 		BooleanExpression booleanExpression = mock(BooleanExpression.class);
 		PathBuilder<Object> pathBuilderMock = mock(PathBuilder.class);
 
 		when(queryFactory.selectFrom(entityPath)).thenReturn(jpaQuery);
-		when(entityPath.get(someProperty)).thenReturn(pathBuilderMock);
+		when(entityPath.get(someField)).thenReturn(pathBuilderMock);
 		when(pathBuilderMock.eq(someValue)).thenReturn(booleanExpression);
 		when(jpaQuery.where(booleanExpression)).thenReturn(jpaQuery);
 		when(jpaQuery.fetchOne()).thenReturn(someEntity);
 
 		// When
-		Optional<Object> result = hopoRepository.findByParam(someProperty, someValue);
+		Optional<Object> result = hopoRepository.findByParam(someField, someValue);
 
 		// Then
 		assertThat(Optional.of(someEntity)).isEqualTo(result);

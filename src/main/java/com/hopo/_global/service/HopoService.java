@@ -28,9 +28,8 @@ public class HopoService<E, ID> {
 
 	/**
 	 * 엔터티 저장
-	 * @param request {@link HopoDto HopoDto} 를 상속받은 Class
+	 * @param request {@link HopoDto HopoDto}
 	 * @return boolean
-	 * @param <D> {@link HopoDto HopoDto} 를 상속받은 Class
 	 */
 	public <D> boolean save(D request) {
 		try {
@@ -58,13 +57,13 @@ public class HopoService<E, ID> {
 
 	/**
 	 * 단건 조회
-	 * @param property {@link String String} column 명
+	 * @param field {@link String String} column 명
 	 * @param v {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
 	 * @return entity
 	 */
-	public E show(String property, Object v) {
+	public E show(String field, Object v) {
 		assert repository != null;
-		return repository.findByParam(property, v)
+		return repository.findByParam(field, v)
 			.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
 	}
 
@@ -79,7 +78,7 @@ public class HopoService<E, ID> {
 
 	/**
 	 * 업데이트
-	 * @param request {@link HopoDto HopoDto} 첫번째 field 는 PK *
+	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
 	 * @return boolean
 	 */
 	public <D> boolean update(D request) {
@@ -111,19 +110,41 @@ public class HopoService<E, ID> {
 	}
 
 	/**
+	 * 삭제
+	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
+	 * @return boolean
+	 */
+	public <D> boolean delete(D request) {
+		try {
+			if (request instanceof HopoDto<?, ?> dto) {
+				// get 메서드 가져오기
+				Method getMethod = dto.getClass().getDeclaredMethod("get", Integer.class, String.class);
+				// get 메서드 실행
+				ID id = (ID) getMethod.invoke(dto, 0, "value");
+				assert repository != null;
+				repository.deleteById(id);
+				return true;
+			}
+		} catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+			throw new HttpCodeHandleException(500, "데이터 삭제 중 문제가 발생했습니다." + e.getMessage());
+		}
+		return false;
+	}
+
+	/**
 	 * 중복된 데이터가 있는지 확인한다.
-	 * @param property {@link String String} column 명
+	 * @param field {@link String String} column 명
 	 * @param v {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
 	 * @return Boolean
 	 */
-	public Boolean checkDuplicate(String property, Object v) {
-		String exceptionCode = switch (property) {
+	public Boolean checkDuplicate(String field, Object v) {
+		String exceptionCode = switch (field) {
 			case "code" -> "DUPLICATE_CODE";
 			case "id" -> "DUPLICATE_ID";
-			default -> "NO_SUCH_PROPERTY";
+			default -> "NO_SUCH_FIELD";
 		};
 		assert repository != null;
-		repository.findByParam(property, v).ifPresent(e -> {
+		repository.findByParam(field, v).ifPresent(e -> {
 			throw new HttpCodeHandleException(exceptionCode);
 		});
 		return true;

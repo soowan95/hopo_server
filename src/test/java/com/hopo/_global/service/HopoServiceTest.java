@@ -8,13 +8,13 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.exception.HttpCodeHandleException;
@@ -27,13 +27,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("p1")
 public class HopoServiceTest {
 
 	static Object someEntity1;
 	static Object someEntity2;
 	static Object someEntity3;
-	static String someProperty;
+	static String someField;
 	static Object someValue;
 
 	@InjectMocks
@@ -48,7 +47,7 @@ public class HopoServiceTest {
 		someEntity1 = new Object();
 		someEntity2 = new Object();
 		someEntity3 = new Object();
-		someProperty = "someProperty";
+		someField = "someField";
 		someValue = new Object();
 	}
 
@@ -84,6 +83,25 @@ public class HopoServiceTest {
 		public Object[] get(Integer index) {
 			return new Object[] { "name", name };
 		}
+
+		@Override
+		public Object get(Integer index, String args) {
+			return this.name;
+		}
+	}
+
+	@EqualsAndHashCode(callSuper = true)
+	@Data
+	@Builder
+	@AllArgsConstructor
+	@NoArgsConstructor
+	static class DeleteTestDto extends HopoDto<TestDto, TestEntity> {
+		private String name;
+
+		@Override
+		public Object get(Integer index, String args) {
+			return this.name;
+		}
 	}
 
 	@Test
@@ -103,10 +121,10 @@ public class HopoServiceTest {
 	@DisplayName("단건 정보 조회")
 	public void show_sholdReturnEntity() {
 		// Given
-		when(hopoRepository.findByParam(someProperty, someValue)).thenReturn(Optional.of(someEntity1));
+		when(hopoRepository.findByParam(someField, someValue)).thenReturn(Optional.of(someEntity1));
 
 		// When
-		Object thisEntity = hopoService.show(someProperty, someValue);
+		Object thisEntity = hopoService.show(someField, someValue);
 
 		// Then
 		assertThat(thisEntity).isNotNull();
@@ -143,36 +161,49 @@ public class HopoServiceTest {
 	}
 
 	@Test
-	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복")
-	public void duplicateValueCheckByPropertyName() {
+	@DisplayName("데이터 삭제")
+	public void delete_shouldDeleteEntity() {
+		// Given
+		DeleteTestDto deleteRequest = new DeleteTestDto("김수완");
+
 		// When
-		when(hopoRepository.findByParam(someProperty, someValue)).thenReturn(Optional.of(someEntity1));
+		boolean isDeleted = hopoService.delete(deleteRequest);
+
+		//Then
+		assertThat(isDeleted).isTrue();
+	}
+
+	@Test
+	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복")
+	public void checkDuplicate_shouldThrowException_whenDuplicate() {
+		// When
+		when(hopoRepository.findByParam("id", someValue)).thenReturn(Optional.of(someEntity1));
 
 		// Then
-		assertThatThrownBy(() -> hopoService.checkDuplicate(someProperty, someValue))
+		assertThatThrownBy(() -> hopoService.checkDuplicate("id", someValue))
 			.isInstanceOf(HttpCodeHandleException.class)
 			.satisfies(e -> {
 				HttpCodeHandleException httpCodeHandleException = (HttpCodeHandleException) e;
-				assertThat(httpCodeHandleException.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+				assertThat(httpCodeHandleException.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
 				assertThat(httpCodeHandleException.getMsg()).isEqualTo("이미 사용 중인 아이디입니다.");
 			});
 
 		// Verify
-		verify(hopoRepository).findByParam(someProperty, someValue);
+		verify(hopoRepository).findByParam("id", someValue);
 	}
 
 	@Test
 	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복 아님")
-	public void notDuplicateValueCheckByPropertyName() {
+	public void checkDuplicate_shouldReturnTrue() {
 		// When
-		when(hopoRepository.findByParam(someProperty, someValue)).thenReturn(Optional.empty());
+		when(hopoRepository.findByParam(someField, someValue)).thenReturn(Optional.empty());
 
-		Boolean result = hopoService.checkDuplicate(someProperty, someValue);
+		Boolean result = hopoService.checkDuplicate(someField, someValue);
 
 		// Then
 		assertThat(result).isTrue();
 
 		// Verify
-		verify(hopoRepository).findByParam(someProperty, someValue);
+		verify(hopoRepository).findByParam(someField, someValue);
 	}
 }

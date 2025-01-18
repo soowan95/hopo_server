@@ -60,6 +60,7 @@ public class HopoDto<D, E> {
 
 			return (E) doBuild(entityClass, d);
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+			log.error(ex.getMessage());
 			throw new HttpCodeHandleException(500, "ENTITY 로 변환에 실패했습니다." + ex.getMessage());
 		}
 	}
@@ -98,16 +99,16 @@ public class HopoDto<D, E> {
 
 
 	/**
-	 * index 번째의 객체 value 를 가져온다
+	 * index 번째의 객체 fieldName, value 를 가져온다
 	 * @param index {@link Integer Integer} default = 0
-	 * @return Object
+	 * @return Object[]
 	 */
 	public Object[] get(Integer index) {
 		if (index == null)
 			index = 0;
 		int cnt = 0;
 		Object value = null;
-		String property;
+		String field;
 		try {
 			// 현재 클래스의 타입 가져오기
 			Class<D> dtoClass = (Class<D>) this.getClass();
@@ -119,17 +120,20 @@ public class HopoDto<D, E> {
 			List<String> fieldNames = Arrays.stream(fields)
 				.map(Field::getName)
 				.toList();
-			property = fieldNames.get(index);
+			field = fieldNames.get(index);
 
 			// 클래스의 메서드 가져오기
 			Method[] methods = dtoClass.getDeclaredMethods();
 
 			// 메서드 정렬: 필드 순서를 기준으로 정렬
 			List<Method> sortedMethods = Arrays.stream(methods)
-				.filter(method -> method.getName().startsWith("get"))
+				.filter(method -> method.getName().startsWith("get") || method.getName().startsWith("is"))
 				.sorted(Comparator.comparingInt(method -> {
-					String fieldName = method.getName().substring(3);
-					fieldName = HopoStringUtils.uncapitalize(fieldName);
+					String fieldName;
+					if (method.getName().startsWith("get"))
+						fieldName = HopoStringUtils.uncapitalize(method.getName().substring(3));
+					else
+						fieldName = method.getName();
 					return fieldNames.indexOf(fieldName);
 				}))
 				.toList();
@@ -144,7 +148,23 @@ public class HopoDto<D, E> {
 		} catch (InvocationTargetException | IllegalAccessException e) {
 			throw new HttpCodeHandleException(500, e.getMessage());
 		}
-		return new Object[]{property, value};
+		return new Object[]{field, value};
+	}
+
+	/**
+	 * index 번째의 fieldName 또는 value 를 가져은다.
+	 * @param index {@link Integer Integer} default = 0
+	 * @param args {@link String String} field 또는 value
+	 * @return Object
+	 */
+	public Object get(Integer index, String args) {
+		if (index == null)
+			index = 0;
+		return switch (args) {
+			case "field" -> get(index)[0];
+			case "value" -> get(index)[1];
+			default -> get(index);
+		};
 	}
 
 	/**
