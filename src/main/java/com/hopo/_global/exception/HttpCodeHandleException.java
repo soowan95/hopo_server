@@ -3,11 +3,13 @@ package com.hopo._global.exception;
 import org.springframework.http.HttpStatus;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 동적 응답코드를 갖는 Exception Class
  */
 @Getter
+@Slf4j
 public class HttpCodeHandleException extends RuntimeException {
 
 	private final HttpStatus status;
@@ -18,9 +20,14 @@ public class HttpCodeHandleException extends RuntimeException {
 	 * @param enumName {@link String String}
 	 */
 	public HttpCodeHandleException(String enumName) {
-		HttpCodeHandleExceptionEnum httpCodeHandleExceptionEnum = HttpCodeHandleExceptionEnum.valueOf(enumName);
-		this.status = httpCodeHandleExceptionEnum.getStatus();
-		this.msg = httpCodeHandleExceptionEnum.getMsg();
+		try {
+			HttpCodeHandleExceptionEnum httpCodeHandleExceptionEnum = HttpCodeHandleExceptionEnum.valueOf(enumName);
+			this.status = httpCodeHandleExceptionEnum.getStatus();
+			this.msg = httpCodeHandleExceptionEnum.getMsg();
+		} catch (IllegalArgumentException | NullPointerException e) {
+			log.error("HttpCodeHandleExceptionEnum is null. HttpCodeHandleExceptionEnum is {}", enumName);
+			throw new HttpCodeHandleException(500, "서버에서 오류가 발생했습니다.");
+		}
 	}
 
 	/**
