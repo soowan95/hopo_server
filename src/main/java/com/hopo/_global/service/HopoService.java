@@ -1,14 +1,17 @@
 package com.hopo._global.service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Optional;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.stereotype.Service;
 
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.entity.Hopo;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
+import com.hopo._utils.HopoStringUtils;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  * @param <ID> PK type
  */
 @NoArgsConstructor(force = true)
+@Service
 @Slf4j
 public class HopoService<E extends Hopo, ID> {
 
@@ -37,13 +41,12 @@ public class HopoService<E extends Hopo, ID> {
 		try {
 			assert repository != null;
 			System.out.println(request.map(request));
-			return repository.save((E) request.map(request));
+			return repository.save((E)request.map(request));
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			throw new HttpCodeHandleException(500, "데이터 저장에 실패했습니다. \n Message: " + e.getMessage());
 		}
 	}
-
 
 	/**
 	 * 단건 조회
@@ -77,7 +80,7 @@ public class HopoService<E extends Hopo, ID> {
 			assert repository != null;
 			E entity = repository.findByParam(args[0].toString(), args[1])
 				.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
-			return repository.save((E) request.map(entity, request));
+			return repository.save((E)request.map(entity, request));
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다. \n Message: " + e.getMessage());
@@ -91,7 +94,7 @@ public class HopoService<E extends Hopo, ID> {
 	 */
 	public <D> boolean delete(HopoDto request) {
 		try {
-			repository.deleteById((ID) request.get(0, "value"));
+			repository.deleteById((ID)request.get(0, "value"));
 			return true;
 		} catch (Exception e) {
 			log.error(e.getMessage());

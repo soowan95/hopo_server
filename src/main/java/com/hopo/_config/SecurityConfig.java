@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity // Spring Security 활성화
-@EnableMethodSecurity // @preAutorize 어노테이션 메소드 단위로 추가
+@EnableMethodSecurity // @preAuthorize 어노테이션 메소드 단위로 추가
 @RequiredArgsConstructor
 public class SecurityConfig {
 

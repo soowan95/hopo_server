@@ -7,7 +7,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._utils.HopoStringUtils;

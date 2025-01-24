@@ -1,6 +1,5 @@
 package com.hopo.belong.controller;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,18 +17,17 @@ import com.hopo.belong.service.BelongServiceImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/belong")
+@RequiredArgsConstructor
+@NoArgsConstructor(force = true)
 @Tag(name = "소속", description = "소속 API 문서")
 public class BelongController extends HopoController {
 
 	private final BelongServiceImpl belongService;
-
-	public BelongController(ApplicationContext applicationContext, BelongServiceImpl belongService) {
-		super(applicationContext);
-		this.belongService = belongService;
-	}
 
 	@PostMapping("/save")
 	@Operation(summary = "소속 정보 추가", description = "회원가입 시 처음 등록되는 주소에 대한 정보 추가")

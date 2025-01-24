@@ -10,8 +10,8 @@ public class HopoStringUtils {
 	 * @return String
 	 */
 	public static String capitalize(String property) {
-		if (property.isBlank())
-			return null;
+		if (property == null || property.isBlank())
+			return "";
 		return property.substring(0, 1).toUpperCase() + property.substring(1);
 	}
 
@@ -21,8 +21,8 @@ public class HopoStringUtils {
 	 * @return String
 	 */
 	public static String uncapitalize(String property) {
-		if (property.isBlank())
-			return null;
+		if (property == null || property.isBlank())
+			return "";
 		return property.substring(0, 1).toLowerCase() + property.substring(1);
 	}
 
