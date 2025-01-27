@@ -85,6 +85,13 @@ class HopoDtoTest {
 		);
 	}
 
+	static Stream<Arguments> setTestCases() {
+		return Stream.of(
+			Arguments.of(0, "김수완"),
+			Arguments.of(1, 30)
+		);
+	}
+
 	@ParameterizedTest
 	@MethodSource("getTestCases")
 	@DisplayName("index 번째 있는 값을 가져온다")
@@ -114,5 +121,16 @@ class HopoDtoTest {
 		// Then
 		assertThat(field).isEqualTo(expectField);
 		assertThat(value).isEqualTo(expectValue);
+	}
+
+	@ParameterizedTest
+	@MethodSource("setTestCases")
+	@DisplayName("index 번째 필드에 값을 저장한다")
+	void set_shouldSetValueAtIndex(int index, Object value) {
+		// When
+		TestDto request = new TestDto().set(index, value);
+
+		// Then
+		assertThat(request.get(index, "value")).isEqualTo(value);
 	}
 }

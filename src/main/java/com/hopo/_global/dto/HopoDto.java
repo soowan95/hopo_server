@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * @param <E> entity
  */
 @Slf4j
-public class HopoDto<D, E> {
+public class HopoDto<D extends HopoDto, E> {
 
 	private final Class<E> entityClass;
 
@@ -112,13 +112,7 @@ public class HopoDto<D, E> {
 			// 현재 클래스의 타입 가져오기
 			Class<D> dtoClass = (Class<D>) this.getClass();
 
-			// 클래스의 필드 순서 가져오기
-			Field[] fields = dtoClass.getDeclaredFields();
-
-			// 필드 이름을 순서대로 배열로 변환
-			List<String> fieldNames = Arrays.stream(fields)
-				.map(Field::getName)
-				.toList();
+			List<String> fieldNames = getFieldNames(dtoClass);
 			field = fieldNames.get(index);
 
 			// 클래스의 메서드 가져오기
@@ -154,17 +148,105 @@ public class HopoDto<D, E> {
 	/**
 	 * index 번째의 fieldName 또는 value 를 가져은다.
 	 * @param index {@link Integer Integer} default = 0
-	 * @param args {@link String String} field 또는 value
+	 * @param target {@link String String} field 또는 value
 	 * @return Object
 	 */
-	public Object get(Integer index, String args) {
+	public Object get(Integer index, String target) {
 		if (index == null)
 			index = 0;
-		return switch (args) {
+		return switch (target) {
 			case "field" -> get(index)[0];
 			case "value" -> get(index)[1];
 			default -> get(index);
 		};
+	}
+
+	/**
+	 * index 번째의 field 에 value 를 저장한다.
+	 * @param index {@link Integer Integer} default = 0
+	 * @param value {@link Object Object}
+	 * @return Class
+	 */
+	public D set(Integer index, Object value) {
+		if (index == null)
+			index = 0;
+		try {
+			// 현재 클래스의 타입 가져오기
+			Class<D> dtoClass = (Class<D>) this.getClass();
+
+			List<String> fieldNames = getFieldNames(dtoClass);
+			List<? extends Class<?>> fieldTypes = getFieldTypes(dtoClass);
+			String field = fieldNames.get(index);
+			Class<?> fieldType = fieldTypes.get(index);
+			String setMethodName = "set" + HopoStringUtils.capitalize(field);
+
+			Method setMethod = dtoClass.getDeclaredMethod(setMethodName, fieldType);
+			setMethod.invoke(this, castValue(value, fieldType));
+			return (D) this;
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			log.error(e.getMessage());
+			throw new HttpCodeHandleException(500, e.getMessage());
+		}
+	}
+
+	/**
+	 * 첫번째 field 에 value 를 저장한다.
+	 * @param value {@link Object Object}
+	 * @return Class
+	 */
+	public D set(Object value) {
+		return set(0, value);
+	}
+
+	/**
+	 * field 이름을 순서대로 가져온다
+	 * @param dtoClass {@link HopoDto HopoDto}
+	 * @return List
+	 */
+	private List<String> getFieldNames(Class<D> dtoClass) {
+		// 클래스의 필드 순서 가져오기
+		Field[] fields = dtoClass.getDeclaredFields();
+
+		// 필드 이름을 순서대로 배열로 변환
+		return Arrays.stream(fields)
+			.map(Field::getName)
+			.toList();
+	}
+
+	/**
+	 * field 타입을 순서대로 가져온다
+	 * @param dtoClass {@link HopoDto HopoDto}
+	 * @return List
+	 */
+	private List<? extends Class<?>> getFieldTypes(Class<D> dtoClass) {
+		// 클래스의 필드 순서 가져오기
+		Field[] fields = dtoClass.getDeclaredFields();
+
+		// 필드 타입을 순서대로 배열로 변환
+		return Arrays.stream(fields)
+			.map(Field::getType)
+			.toList();
+	}
+
+	/**
+	 * Object 를 field 의 Type 으로 형변환
+	 * @param value {@link Object Object}
+	 * @param fieldType {@link Class Class} field 의 Type
+	 * @return Object
+	 */
+	private Object castValue(Object value, Class<?> fieldType) {
+		if (value == null) return null;
+
+		if (fieldType.isAssignableFrom(value.getClass())) return value;
+
+		if (fieldType == Integer.class || fieldType == int.class)
+			return Integer.valueOf(value.toString());
+		else if (fieldType == Long.class || fieldType == long.class)
+			return Long.valueOf(value.toString());
+		else if (fieldType == Double.class || fieldType == double.class)
+			return Double.valueOf(value.toString());
+		else
+			return value.toString();
 	}
 
 	/**
