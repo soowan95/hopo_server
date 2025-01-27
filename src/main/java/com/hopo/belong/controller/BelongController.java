@@ -17,13 +17,11 @@ import com.hopo.belong.service.BelongServiceImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/belong")
 @RequiredArgsConstructor
-@NoArgsConstructor(force = true)
 @Tag(name = "소속", description = "소속 API 문서")
 public class BelongController extends HopoController {
 

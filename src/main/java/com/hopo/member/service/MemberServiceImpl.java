@@ -10,23 +10,21 @@ import com.hopo.member.dto.response.MemberResponse;
 import com.hopo.member.entity.Member;
 import com.hopo.member.repository.MemberRepository;
 
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional
-public class MemberServiceImpl extends HopoService<Member, String> implements MemberService {
+@RequiredArgsConstructor
+public class MemberServiceImpl extends HopoService<Member> implements MemberService {
 
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder bCryptPasswordEncoder;
 
-	public MemberServiceImpl(MemberRepository memberRepository, PasswordEncoder bCryptPasswordEncoder) {
-		super(memberRepository);
-		this.memberRepository = memberRepository;
-		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-	}
-
 	@Override
 	public MemberResponse signUp(SignUpRequest request) {
 		Member member = Member.builder()
-			.id(request.getId())
+			.loginId(request.getLoginId())
 			.password(request.getPassword())
 			.name(request.getName())
 			.email(request.getEmail())

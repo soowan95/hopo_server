@@ -31,9 +31,9 @@ public class HopoController {
 	private final ServiceRegistry serviceRegistry;
 	private final DtoRegistry dtoRegistry;
 
-	@PostMapping("/save")
+	@PostMapping("/hopo/save")
 	@Operation(summary = "저장", description = "데이터 저장")
-	public ResponseEntity<?> save(@PathVariable String entity, @RequestBody String requestBody) {
+	protected ResponseEntity<?> save(@PathVariable String entity, @RequestBody String requestBody) {
 		try {
 			// DTO class 결정
 			HopoDto requestPrototype = dtoRegistry.getDto(entity, "save");
@@ -44,7 +44,7 @@ public class HopoController {
 			HopoDto request = objectMapper.readValue(requestBody, requestClass);
 
 			HopoService service = serviceRegistry.getService(entity);
-			return ResponseEntity.ok(service.save(request));
+			return ResponseEntity.ok(service.save(request, entity));
 		} catch (Exception e) {
 			log.error("데이터 저장 중 오류가 발생했습니다. \n Message: {}", e.getMessage());
 			throw new HttpCodeHandleException(500, "데이터 저장 중 오류가 발생했습니다.");

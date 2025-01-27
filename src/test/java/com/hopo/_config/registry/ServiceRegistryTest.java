@@ -3,6 +3,7 @@ package com.hopo._config.registry;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.hopo._global.entity.Hopo;
+import com.hopo._global.repository.HopoRepository;
 import com.hopo._global.service.HopoService;
 
 import lombok.NoArgsConstructor;
@@ -36,15 +38,21 @@ public class ServiceRegistryTest {
 	private static class TestEntity extends Hopo {
 	}
 
-	@NoArgsConstructor
-	private static class TestServiceImpl extends HopoService<TestEntity, Integer> {
+	private static class TestServiceImpl extends HopoService<TestEntity> {
+	}
+
+	private static class TestRepository implements HopoRepository<TestEntity> {
+		@Override
+		public Optional<TestEntity> findByParam(String field, Object v) {
+			return Optional.empty();
+		}
 	}
 
 	@Test
 	@DisplayName("동적으로 Service 가져오기")
 	public void getService_shouldReturnTestServiceImpl() {
 		// When
-		HopoService<?, ?> service = serviceRegistry.getService("test");
+		HopoService<?> service = serviceRegistry.getService("test");
 
 		// Then
 		assertThat(service).isNotNull();

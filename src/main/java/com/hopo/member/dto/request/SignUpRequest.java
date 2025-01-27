@@ -13,7 +13,7 @@ import lombok.Data;
 public class SignUpRequest {
 
 	@Schema(name = "아이디")
-	private String id;
+	private String loginId;
 
 	@Schema(name = "비밀번호")
 	private String password;

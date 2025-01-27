@@ -13,7 +13,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -32,9 +31,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Member extends Hopo {
 
-	@Id
-	@Column(name = "id", unique = true, nullable = false)
-	private String id;
+	@Column(name = "login_id", unique = true, nullable = false)
+	private String loginId;
 
 	@Column(name = "password")
 	private String password;

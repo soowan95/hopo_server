@@ -2,6 +2,7 @@ package com.hopo.space.entity;
 
 import org.hibernate.annotations.ColumnDefault;
 
+import com.hopo._global.entity.Hopo;
 import com.hopo.belong.entity.Belong;
 import com.hopo.member.entity.Member;
 
@@ -25,12 +26,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Space {
-
-	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+public class Space extends Hopo {
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "member_id")
