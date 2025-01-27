@@ -15,20 +15,18 @@ import com.hopo.belong.dto.response.SaveBelongResponse;
 import com.hopo.belong.entity.Belong;
 import com.hopo.belong.repository.BelongRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 @Transactional
-public class BelongServiceImpl extends HopoService<Belong, String> implements BelongService {
+public class BelongServiceImpl extends HopoService<Belong> implements BelongService {
 
 	private final BelongRepository belongRepository;
 
-	public BelongServiceImpl(BelongRepository belongRepository) {
-		super(belongRepository);
-		this.belongRepository = belongRepository;
-	}
-
 	@Override
 	public SaveBelongResponse save(SaveBelongRequest saveBelongRequest) {
-		checkDuplicate("code", saveBelongRequest.getCode());
+		checkDuplicate("code", saveBelongRequest.getCode(), "belong");
 
 		Belong belong = belongRepository.save(new SaveBelongRequest().map(saveBelongRequest));
 

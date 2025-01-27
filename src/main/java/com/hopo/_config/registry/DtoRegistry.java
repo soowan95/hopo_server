@@ -19,9 +19,6 @@ public class DtoRegistry {
 	private final Map<String, HopoDto> dtoMap;
 
 	public DtoRegistry(List<HopoDto> dtoList) {
-		for (HopoDto dto : dtoList) {
-			System.out.println(dto.getClass().getName());
-		}
 		this.dtoMap = dtoList.stream()
 			.filter(dto -> dto.getClass().getSimpleName().endsWith("Request"))
 			.collect(Collectors.toMap(dto -> dto.getClass().getSimpleName(), dto -> dto));

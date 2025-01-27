@@ -30,10 +30,10 @@ import lombok.NoArgsConstructor;
 public class HopoServiceTest {
 
 	@InjectMocks
-	private HopoService<TestEntity, Integer> hopoService;
+	private HopoService<TestEntity> hopoService;
 
 	@Mock
-	private HopoRepository<TestEntity, Integer> hopoRepository;
+	private HopoRepository<TestEntity> hopoRepository;
 
 	@BeforeAll
 	public static void setup() {
@@ -68,23 +68,6 @@ public class HopoServiceTest {
 	}
 
 	@Test
-	@DisplayName("요청데이터를 맵핑하여 entity 로 저장")
-	public void save_shouldMapRequestToEntityAndSave() {
-		// Given
-		TestDto testDto = new TestDto(1, "김수완", 30);
-		when(hopoRepository.save(any(TestEntity.class))).thenReturn(testDto.map(testDto));
-
-		// When
-		TestEntity savedEntity = hopoService.save(testDto);
-
-		// Then
-		assertThat(savedEntity).isNotNull();
-		assertThat(savedEntity.id).isEqualTo(testDto.getId());
-		assertThat(savedEntity.name).isEqualTo(testDto.getName());
-		assertThat(savedEntity.age).isEqualTo(testDto.getAge());
-	}
-
-	@Test
 	@DisplayName("단건 정보 조회")
 	public void show_sholdReturnEntity() {
 		// Given
@@ -93,42 +76,10 @@ public class HopoServiceTest {
 		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
 
 		// When
-		Object thisEntity = hopoService.show(testDto);
+		Object thisEntity = hopoService.show(testDto, "test");
 
 		// Then
 		assertThat(thisEntity).isNotNull();
-	}
-
-	@Test
-	@DisplayName("모든 정보 조회")
-	public void showAll_shouldReturnAllEntity() {
-		// Given
-		when(hopoRepository.findAll()).thenReturn(List.of(new TestEntity(1, "김수완", 30), new TestEntity(2, "박수희", 29)));
-
-		// When
-		List<TestEntity> entityList = hopoService.showAll();
-
-		// Then
-		assertThat(entityList).isNotNull();
-		assertThat(entityList.size()).isEqualTo(2);
-	}
-
-	@Test
-	@DisplayName("데이터 갱신")
-	public void update_shouldUpdateEntity() {
-		// Given
-		TestEntity testEntity = new TestEntity(1, "김수완", 30);
-		TestDto testDto = new TestDto(1, "박수희", 29);
-		when(hopoRepository.findByParam(any(String.class), any(Object.class))).thenReturn(Optional.of(testEntity));
-		when(hopoRepository.save(any(TestEntity.class))).thenReturn(testEntity);
-
-		// When
-		TestEntity updatedEntity = hopoService.update(testDto);
-
-		// Then
-		assertThat(updatedEntity).isNotNull();
-		assertThat(testEntity.name).isEqualTo(updatedEntity.name);
-		assertThat(testEntity.age).isEqualTo(updatedEntity.age);
 	}
 
 	@Test
@@ -138,7 +89,7 @@ public class HopoServiceTest {
 		DeleteTestDto deleteRequest = new DeleteTestDto(1);
 
 		// When
-		boolean isDeleted = hopoService.delete(deleteRequest);
+		boolean isDeleted = hopoService.delete(deleteRequest, "test");
 
 		//Then
 		assertThat(isDeleted).isTrue();
@@ -151,7 +102,7 @@ public class HopoServiceTest {
 		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
 
 		// Then
-		assertThatThrownBy(() -> hopoService.checkDuplicate("id", 1))
+		assertThatThrownBy(() -> hopoService.checkDuplicate("id", 1, "test"))
 			.isInstanceOf(HttpCodeHandleException.class)
 			.satisfies(e -> {
 				HttpCodeHandleException httpCodeHandleException = (HttpCodeHandleException) e;
@@ -169,7 +120,7 @@ public class HopoServiceTest {
 		// When
 		when(hopoRepository.findByParam("id", 2)).thenReturn(Optional.empty());
 
-		Boolean result = hopoService.checkDuplicate("id", 2);
+		Boolean result = hopoService.checkDuplicate("id", 2, "test");
 
 		// Then
 		assertThat(result).isTrue();

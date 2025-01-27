@@ -1,47 +1,42 @@
 package com.hopo._global.service;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.stereotype.Service;
 
+import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.entity.Hopo;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
-import com.hopo._utils.HopoStringUtils;
 
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * 모드 Service 에서 공동으로 사용할 class
- * @param <E> Entity class
- * @param <ID> PK type
+ * @param <E> Entity
  */
-@NoArgsConstructor(force = true)
 @Service
+@RequiredArgsConstructor
+@NoArgsConstructor(force=true)
 @Slf4j
-public class HopoService<E extends Hopo, ID> {
+public class HopoService<E extends Hopo> {
 
-	private final HopoRepository<E, ID> repository;
-
-	public HopoService(HopoRepository<E, ID> repository) {
-		this.repository = repository;
-	}
+	private final RepositoryRegistry repositoryRegistry;
 
 	/**
 	 * 엔터티 저장
 	 * @param request {@link HopoDto HopoDto}
 	 * @return boolean
 	 */
-	public E save(HopoDto request) {
+	public E save(HopoDto request, String entityName) {
 		try {
-			assert repository != null;
-			System.out.println(request.map(request));
-			return repository.save((E)request.map(request));
+			Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+			Method saveMethod = repositoryClass.getMethod("save", Hopo.class);
+			return (E)saveMethod.invoke(repositoryClass, request.map(request));
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			throw new HttpCodeHandleException(500, "데이터 저장에 실패했습니다. \n Message: " + e.getMessage());
@@ -53,20 +48,31 @@ public class HopoService<E extends Hopo, ID> {
 	 * @param request {@link HopoDto HopoDto} column 명
 	 * @return entity
 	 */
-	public E show(HopoDto request) {
+	public E show(HopoDto request, String entityName) {
 		Object[] args = request.get(0);
-		assert repository != null;
-		return repository.findByParam(args[0].toString(), args[1])
-			.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
+		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+		try {
+			Method findByParamMethod = repositoryClass.getMethod("findByParam", String.class, Object.class);
+			return (E)findByParamMethod.invoke(repositoryClass, args[0].toString(), args[1]);
+		} catch (Exception e) {
+			log.error("데이터를 가져오는데 실패했습니다. \n Message: {}", e.getMessage());
+			throw new HttpCodeHandleException("NO_SUCH_DATA");
+		}
 	}
 
 	/**
 	 * 전체 조회
 	 * @return List
 	 */
-	public List<E> showAll() {
-		assert repository != null;
-		return repository.findAll();
+	public List<E> showAll(String entityName) {
+		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+		try {
+			Method findAllMethod = repositoryClass.getMethod("findAll");
+			return (List<E>)findAllMethod.invoke(repositoryClass);
+		} catch (Exception e) {
+			log.error("데이터를 가져오는데 실패했습니다. \n Message: {}", e.getMessage());
+			return null;
+		}
 	}
 
 	/**
@@ -74,16 +80,15 @@ public class HopoService<E extends Hopo, ID> {
 	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
 	 * @return boolean
 	 */
-	public E update(HopoDto request) {
+	public E update(HopoDto request, String entityName) {
+		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 		try {
-			Object[] args = request.get(0);
-			assert repository != null;
-			E entity = repository.findByParam(args[0].toString(), args[1])
-				.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
-			return repository.save((E)request.map(entity, request));
+			E entity = show(request, entityName);
+			Method updateMethod = repositoryClass.getMethod("save", Hopo.class);
+			return (E)updateMethod.invoke(repositoryClass, entity);
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다. \n Message: " + e.getMessage());
+			log.error("데이터 갱신 중 문제가 발생했습니다. \n Message: {}", e.getMessage());
+			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다.");
 		}
 	}
 
@@ -92,13 +97,16 @@ public class HopoService<E extends Hopo, ID> {
 	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
 	 * @return boolean
 	 */
-	public <D> boolean delete(HopoDto request) {
+	public boolean delete(HopoDto request, String entityName) {
+		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 		try {
-			repository.deleteById((ID)request.get(0, "value"));
+			E entity = show(request, entityName);
+			Method deleteByIdMethod = repositoryClass.getMethod("deleteById", Long.class);
+			deleteByIdMethod.invoke(repositoryClass, entity.getId());
 			return true;
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			throw new HttpCodeHandleException(500, "데이터 삭제 중 문제가 발생했습니다. \n Message: " + e.getMessage());
+			log.error("데이터 삭제 중 문제가 발생했습니다. \n Message: {}", e.getMessage());
+			throw new HttpCodeHandleException(500, "데이터 삭제 중 문제가 발생했습니다.");
 		}
 	}
 
@@ -108,16 +116,20 @@ public class HopoService<E extends Hopo, ID> {
 	 * @param v {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
 	 * @return Boolean
 	 */
-	public Boolean checkDuplicate(String field, Object v) {
+	public Boolean checkDuplicate(String field, Object v, String entityName) {
+		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 		String exceptionCode = switch (field) {
 			case "code" -> "DUPLICATE_CODE";
 			case "id" -> "DUPLICATE_ID";
 			default -> "NO_SUCH_FIELD";
 		};
-		assert repository != null;
-		repository.findByParam(field, v).ifPresent(e -> {
+		try {
+			Method findByParamMethod = repositoryClass.getMethod("findByParam", String.class, Object.class);
+			if (findByParamMethod.invoke(repositoryClass, field, v) == null)
+				throw new Exception();
+		} catch (Exception e) {
 			throw new HttpCodeHandleException(exceptionCode);
-		});
+		}
 		return true;
 	}
 }

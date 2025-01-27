@@ -24,7 +24,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Belong extends Hopo {
 
-	@Id
 	@Column(name="code", unique = true, nullable = false)
 	private String code;
 

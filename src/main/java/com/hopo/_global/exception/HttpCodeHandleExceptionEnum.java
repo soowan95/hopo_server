@@ -19,6 +19,7 @@ public enum HttpCodeHandleExceptionEnum {
 	NO_SUCH_FIELD(HttpStatus.NO_CONTENT, "존재 하지 않는 컬럼입니다."), // 204
 	NOT_EXPECTED_RETURN_TYPE(HttpStatus.INTERNAL_SERVER_ERROR, "응답 형이 올바르지 않습니다."), // 500
 	NO_SUCH_SERVICE(HttpStatus.BAD_REQUEST, "존재 하지 않는 Service 입니다."), // 404
+	NO_SUCH_REPOSITORY(HttpStatus.BAD_REQUEST, "존재 하지 않는 Repository 입니다."), // 404
 	NO_SUCH_REQUEST(HttpStatus.BAD_REQUEST, "잘 못 된 요청입니다.")
 	;
 

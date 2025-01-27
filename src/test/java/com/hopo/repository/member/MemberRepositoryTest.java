@@ -28,7 +28,7 @@ public class MemberRepositoryTest {
 		Member saveMember = memberRepository.save(member);
 
 		// Then
-		assertThat(saveMember.getId()).isEqualTo(member.getId());
+		assertThat(saveMember.getLoginId()).isEqualTo(member.getLoginId());
 		assertThat(saveMember.getPassword()).isEqualTo(member.getPassword());
 		assertThat(saveMember.getName()).isEqualTo(member.getName());
 		assertThat(saveMember.getEmail()).isEqualTo(member.getEmail());
