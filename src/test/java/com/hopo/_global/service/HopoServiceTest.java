@@ -3,6 +3,7 @@ package com.hopo._global.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ import com.hopo._global.entity.Hopo;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
 
+import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,9 +44,10 @@ public class HopoServiceTest {
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@AllArgsConstructor
+	@NoArgsConstructor
 	@Builder
+	@Entity
 	public static class TestEntity extends Hopo {
-		private Integer id;
 		private String name;
 		private int age;
 	}
@@ -69,9 +72,9 @@ public class HopoServiceTest {
 
 	@Test
 	@DisplayName("단건 정보 조회")
-	public void show_sholdReturnEntity() {
+	public void show_sholdReturnEntity() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
 		// Given
-		TestEntity testEntity = new TestEntity(1, "김수완", 30);
+		TestEntity testEntity = new TestEntity("김수완", 30);
 		TestDto testDto = new TestDto(1, "김수완", 30);
 		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
 
@@ -98,7 +101,7 @@ public class HopoServiceTest {
 	@Test
 	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복")
 	public void checkDuplicate_shouldThrowException_whenDuplicate() {
-		TestEntity testEntity = new TestEntity(1, "김수완", 30);
+		TestEntity testEntity = new TestEntity("김수완", 30);
 		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
 
 		// Then

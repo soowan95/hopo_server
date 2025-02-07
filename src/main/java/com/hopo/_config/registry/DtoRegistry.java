@@ -20,20 +20,32 @@ public class DtoRegistry {
 
 	public DtoRegistry(List<HopoDto> dtoList) {
 		this.dtoMap = dtoList.stream()
-			.filter(dto -> dto.getClass().getSimpleName().endsWith("Request"))
 			.collect(Collectors.toMap(dto -> dto.getClass().getSimpleName(), dto -> dto));
 	}
 
-	private String buildDtoName(String entityName, String methodName) {
+	private String buildRequestName(String entityName, String methodName) {
 		return HopoStringUtils.capitalize(methodName) + HopoStringUtils.capitalize(entityName) + "Request";
 	}
 
-	public HopoDto getDto(String entityName, String methodName) {
-		HopoDto request = dtoMap.get(buildDtoName(entityName, methodName));
+	private String buildResponseName(String entityName, String methodName) {
+		return HopoStringUtils.capitalize(methodName) + HopoStringUtils.capitalize(entityName) + "Response";
+	}
+
+	public HopoDto getRequest(String entityName, String methodName) {
+		HopoDto request = dtoMap.get(buildRequestName(entityName, methodName));
 		if (request == null) {
-			log.error("{} dto not found", buildDtoName(entityName, methodName));
+			log.error("{} dto not found", buildRequestName(entityName, methodName));
 			throw new HttpCodeHandleException("NO_SUCH_REQUEST");
 		}
 		return request;
+	}
+
+	public HopoDto getResponse(String entityName, String methodName) {
+		HopoDto response = dtoMap.get(buildResponseName(entityName, methodName));
+		if (response == null) {
+			log.error("{} dto not found", buildResponseName(entityName, methodName));
+			throw new HttpCodeHandleException("NO_SUCH_RESPONSE");
+		}
+		return response;
 	}
 }

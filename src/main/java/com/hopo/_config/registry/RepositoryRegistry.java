@@ -29,7 +29,7 @@ public class RepositoryRegistry {
 	public HopoRepository getRepository(String entityName) {
 		HopoRepository repository = repositoryMap.get(buildRepositoryName(entityName));
 		if (repository == null) {
-			log.error("{} service not found", buildRepositoryName(entityName));
+			log.error("{} repository not found", buildRepositoryName(entityName));
 			throw new HttpCodeHandleException("NO_SUCH_REPOSITORY");
 		}
 		return repository;

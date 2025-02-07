@@ -22,14 +22,14 @@ public class ServiceRegistry {
 			.collect(Collectors.toMap(service -> service.getClass().getSimpleName(), service -> service));
 	}
 
-	private String buildServiceName(String serviceName) {
-		return HopoStringUtils.capitalize(serviceName) + "ServiceImpl";
+	private String buildServiceName(String entityName) {
+		return HopoStringUtils.capitalize(entityName) + "ServiceImpl";
 	}
 
-	public HopoService getService(String serviceName) {
-		HopoService hopoService = serviceMap.get(buildServiceName(serviceName));
+	public HopoService getService(String entityName) {
+		HopoService hopoService = serviceMap.get(buildServiceName(entityName));
 		if (hopoService == null) {
-			log.error("{} service not found", buildServiceName(serviceName));
+			log.error("{} service not found", buildServiceName(entityName));
 			throw new HttpCodeHandleException("NO_SUCH_SERVICE");
 		}
 		return hopoService;

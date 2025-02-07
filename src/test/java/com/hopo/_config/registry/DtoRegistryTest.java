@@ -40,9 +40,9 @@ public class DtoRegistryTest {
 
 	@Test
 	@DisplayName("동적으로 Request 가져오기")
-	void getDto_shouldReturnTestRequest() {
+	void getRequest_shouldReturnTestRequest() {
 		// When
-		TestRequest request = (TestRequest) dtoRegistry.getDto("Test", null);
+		TestRequest request = (TestRequest) dtoRegistry.getRequest("Test", null);
 
 		// Then
 		assertThat(request).isNotNull();

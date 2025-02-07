@@ -87,9 +87,9 @@ class BelongControllerTest {
 		// Given
 		String request = "test";
 		Belong belong = Belong.builder().address("test").code("someCode").isCompany(false).build();
-		Member member1 = Member.builder().name("test").password("1234").email("a@a.a").id("test").build();
-		Member member2 = Member.builder().name("soowan").password("1234").email("a@a.a").id("soowan").build();
-		Member member3 = Member.builder().name("any").password("1234").email("a@a.a").id("any").build();
+		Member member1 = Member.builder().name("test").password("1234").email("a@a.a").loginId("test").build();
+		Member member2 = Member.builder().name("soowan").password("1234").email("a@a.a").loginId("soowan").build();
+		Member member3 = Member.builder().name("any").password("1234").email("a@a.a").loginId("any").build();
 		Space space1 = Space.builder().belong(belong).member(member1).isOwner(true).build();
 		Space space2 = Space.builder().belong(belong).member(member2).isOwner(true).build();
 		Space space3 = Space.builder().belong(belong).member(member3).isOwner(true).build();

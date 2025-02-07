@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-@WebFilter(urlPatterns = "/api/*/*")
 public class PathRedirectFilter extends GenericFilter {
 
 	@Qualifier("requestMappingHandlerMapping")
@@ -33,7 +32,7 @@ public class PathRedirectFilter extends GenericFilter {
 
 		String uri = httpRequest.getRequestURI();
 
-		if (isRequestUriExist(httpRequest))
+		if (!isApiRequest(uri) || isRequestUriExist(httpRequest))
 			chain.doFilter(request, response);
 		else
 			httpResponse.sendRedirect(makeRedirectUri(uri.split("/")));
@@ -55,5 +54,9 @@ public class PathRedirectFilter extends GenericFilter {
 			sb.append("/").append(paths[i]);
 		}
 		return sb.substring(1);
+	}
+
+	private boolean isApiRequest(String uri) {
+		return uri.matches("/api/[^/]+/[^/]+");
 	}
 }

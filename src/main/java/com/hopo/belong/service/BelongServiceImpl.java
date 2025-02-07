@@ -5,6 +5,7 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.service.HopoService;
 import com.hopo.belong.dto.request.SaveBelongRequest;
@@ -15,14 +16,16 @@ import com.hopo.belong.dto.response.SaveBelongResponse;
 import com.hopo.belong.entity.Belong;
 import com.hopo.belong.repository.BelongRepository;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class BelongServiceImpl extends HopoService<Belong> implements BelongService {
 
 	private final BelongRepository belongRepository;
+
+	public BelongServiceImpl(RepositoryRegistry repositoryRegistry, BelongRepository belongRepository) {
+		super(repositoryRegistry);
+		this.belongRepository = belongRepository;
+	}
 
 	@Override
 	public SaveBelongResponse save(SaveBelongRequest saveBelongRequest) {

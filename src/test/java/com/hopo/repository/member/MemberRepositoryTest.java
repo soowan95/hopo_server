@@ -49,7 +49,7 @@ public class MemberRepositoryTest {
 
 	private Member member() {
 		return Member.builder()
-			.id("test")
+			.loginId("test")
 			.password("pw")
 			.name("test")
 			.email("test@test.com")

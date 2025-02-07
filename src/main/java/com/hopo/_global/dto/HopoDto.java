@@ -267,8 +267,12 @@ public class HopoDto<D extends HopoDto, E> {
 		Method[] methods = builder.getClass().getDeclaredMethods();
 		for (Method method : methods) {
 			String fieldName = method.getName();
+			Method thisMethod;
 			try {
-				Method thisMethod = o.getClass().getMethod("get" + HopoStringUtils.capitalize(fieldName));
+				if (fieldName.startsWith("is"))
+					thisMethod = o.getClass().getMethod(fieldName);
+				else
+				 thisMethod = o.getClass().getMethod("get" + HopoStringUtils.capitalize(fieldName));
 				Object value = thisMethod.invoke(o);
 				method.invoke(builder, value);
 			} catch (NoSuchMethodException ignore) {

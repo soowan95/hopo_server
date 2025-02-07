@@ -1,5 +1,6 @@
 package com.hopo._global.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -21,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @RequiredArgsConstructor
-@NoArgsConstructor(force=true)
 @Slf4j
 public class HopoService<E extends Hopo> {
 
@@ -32,14 +32,17 @@ public class HopoService<E extends Hopo> {
 	 * @param request {@link HopoDto HopoDto}
 	 * @return boolean
 	 */
-	public E save(HopoDto request, String entityName) {
+	public E save(HopoDto request, String entityName) throws
+		InvocationTargetException,
+		NoSuchMethodException,
+		IllegalAccessException {
 		try {
 			Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 			Method saveMethod = repositoryClass.getMethod("save", Hopo.class);
 			return (E)saveMethod.invoke(repositoryClass, request.map(request));
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			throw new HttpCodeHandleException(500, "데이터 저장에 실패했습니다. \n Message: " + e.getMessage());
+			log.error("Exception: {} \n Message: {}", e.getClass().getSimpleName(), e.getMessage());
+			throw e;
 		}
 	}
 
@@ -48,15 +51,18 @@ public class HopoService<E extends Hopo> {
 	 * @param request {@link HopoDto HopoDto} column 명
 	 * @return entity
 	 */
-	public E show(HopoDto request, String entityName) {
+	public E show(HopoDto request, String entityName) throws
+		InvocationTargetException,
+		NoSuchMethodException,
+		IllegalAccessException {
 		Object[] args = request.get(0);
 		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 		try {
 			Method findByParamMethod = repositoryClass.getMethod("findByParam", String.class, Object.class);
 			return (E)findByParamMethod.invoke(repositoryClass, args[0].toString(), args[1]);
 		} catch (Exception e) {
-			log.error("데이터를 가져오는데 실패했습니다. \n Message: {}", e.getMessage());
-			throw new HttpCodeHandleException("NO_SUCH_DATA");
+			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
+			throw e;
 		}
 	}
 
@@ -70,7 +76,7 @@ public class HopoService<E extends Hopo> {
 			Method findAllMethod = repositoryClass.getMethod("findAll");
 			return (List<E>)findAllMethod.invoke(repositoryClass);
 		} catch (Exception e) {
-			log.error("데이터를 가져오는데 실패했습니다. \n Message: {}", e.getMessage());
+			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
 			return null;
 		}
 	}
