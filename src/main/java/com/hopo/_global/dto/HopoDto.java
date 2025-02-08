@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HopoDto<D extends HopoDto, E> {
 
 	private final Class<E> entityClass;
+	private final Class<D> dtoClass;
 
 	/**
 	 * Entity Class 를 가져오기 위한 생성자
@@ -29,6 +30,7 @@ public class HopoDto<D extends HopoDto, E> {
 	public HopoDto() {
 		this.entityClass = (Class<E>) ((ParameterizedType) getClass()
 			.getGenericSuperclass()).getActualTypeArguments()[1];
+		this.dtoClass = (Class<D>) this.getClass();
 	}
 
 	/**
@@ -38,9 +40,6 @@ public class HopoDto<D extends HopoDto, E> {
 	 */
 	public D of(E e) {
 		try {
-			// D 클래스 타입 가져오기
-			Class<D> dtoClass = (Class<D>) this.getClass();
-
 			return (D) doBuild(dtoClass, e);
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
 			throw new HttpCodeHandleException(500, "DTO 로 변환에 실패했습니다." + ex.getMessage());
@@ -68,9 +67,8 @@ public class HopoDto<D extends HopoDto, E> {
 	 * request 를 기존 entity 에 맵핑한다
 	 * @param e entity
 	 * @param d request
-	 * @return entity
 	 */
-	public E map(E e, D d) {
+	public void map(E e, D d) {
 		try {
 			// d의 필드 가져오기
 			Field[] dFields = d.getClass().getDeclaredFields();
@@ -89,8 +87,6 @@ public class HopoDto<D extends HopoDto, E> {
 					// e에 해당 필드가 없는 경우 무시
 				}
 			}
-
-			return e; // 수정된 e 반환
 		} catch (IllegalAccessException error) {
 			throw new HttpCodeHandleException(500, "맵핑 중 오류 발생" + error.getMessage());
 		}
@@ -109,9 +105,6 @@ public class HopoDto<D extends HopoDto, E> {
 		Object value = null;
 		String field;
 		try {
-			// 현재 클래스의 타입 가져오기
-			Class<D> dtoClass = (Class<D>) this.getClass();
-
 			List<String> fieldNames = getFieldNames(dtoClass);
 			field = fieldNames.get(index);
 
@@ -161,19 +154,19 @@ public class HopoDto<D extends HopoDto, E> {
 		};
 	}
 
+	public Object get(String field) {
+		return get(getFieldIndex(field));
+	}
+
 	/**
 	 * index 번째의 field 에 value 를 저장한다.
 	 * @param index {@link Integer Integer} default = 0
 	 * @param value {@link Object Object}
-	 * @return Class
 	 */
-	public D set(Integer index, Object value) {
+	public void set(Integer index, Object value) {
 		if (index == null)
 			index = 0;
 		try {
-			// 현재 클래스의 타입 가져오기
-			Class<D> dtoClass = (Class<D>) this.getClass();
-
 			List<String> fieldNames = getFieldNames(dtoClass);
 			List<? extends Class<?>> fieldTypes = getFieldTypes(dtoClass);
 			String field = fieldNames.get(index);
@@ -182,7 +175,6 @@ public class HopoDto<D extends HopoDto, E> {
 
 			Method setMethod = dtoClass.getDeclaredMethod(setMethodName, fieldType);
 			setMethod.invoke(this, castValue(value, fieldType));
-			return (D) this;
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 			log.error(e.getMessage());
 			throw new HttpCodeHandleException(500, e.getMessage());
@@ -190,12 +182,20 @@ public class HopoDto<D extends HopoDto, E> {
 	}
 
 	/**
+	 * field 이름에 value 를 저장한다.
+	 * @param field {@link String String} field 이름
+	 * @param value {@link Object Object} 저장할 값
+	 */
+	public void set(String field, Object value) {
+		set(getFieldIndex(field), value);
+	}
+
+	/**
 	 * 첫번째 field 에 value 를 저장한다.
 	 * @param value {@link Object Object}
-	 * @return Class
 	 */
-	public D set(Object value) {
-		return set(0, value);
+	public void set(Object value) {
+		set(0, value);
 	}
 
 	/**
@@ -211,6 +211,15 @@ public class HopoDto<D extends HopoDto, E> {
 		return Arrays.stream(fields)
 			.map(Field::getName)
 			.toList();
+	}
+
+	/**
+	 * field 이름을 통해 index 를 가져온다
+	 * @param field {@link String String}
+	 * @return Integer
+	 */
+	private Integer getFieldIndex(String field) {
+		return getFieldNames(dtoClass).indexOf(field);
 	}
 
 	/**

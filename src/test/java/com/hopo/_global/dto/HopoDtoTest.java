@@ -41,7 +41,7 @@ class HopoDtoTest {
 	@Builder
 	@AllArgsConstructor
 	@NoArgsConstructor
-	static class GetTestDto extends HopoDto<TestDto, TestEntity> {
+	static class GetTestDto extends HopoDto<GetTestDto, TestEntity> {
 		private String name;
 		private int age;
 		private boolean isThird;
@@ -128,7 +128,8 @@ class HopoDtoTest {
 	@DisplayName("index 번째 필드에 값을 저장한다")
 	void set_shouldSetValueAtIndex(int index, Object value) {
 		// When
-		TestDto request = new TestDto().set(index, value);
+		TestDto request = new TestDto();
+		request.set(index, value);
 
 		// Then
 		assertThat(request.get(index, "value")).isEqualTo(value);
