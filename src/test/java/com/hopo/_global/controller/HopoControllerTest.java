@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,6 @@ import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._config.registry.ServiceRegistry;
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.entity.Hopo;
-import com.hopo._global.repository.HopoRepository;
 import com.hopo._global.service.HopoService;
 
 import jakarta.persistence.Entity;
@@ -53,13 +51,7 @@ public class HopoControllerTest {
 	private ServiceRegistry serviceRegistry;
 
 	@MockBean
-	private RepositoryRegistry repositoryRegistry;
-
-	@MockBean
-	private TestRepository testRepository;
-
-	@MockBean
-	private SaveTestServiceImpl saveTestService;
+	private TestServiceImpl testService;
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -90,6 +82,16 @@ public class HopoControllerTest {
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
+	public static class ShowTestRequest extends HopoDto<ShowTestRequest, TestEntity> {
+		private String name;
+		@SerializedName("active")
+		private boolean isActive;
+	}
+
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class SaveTestResponse extends HopoDto<SaveTestResponse, TestEntity> {
 		private Long id;
 		private String name;
@@ -97,14 +99,23 @@ public class HopoControllerTest {
 		private boolean isActive;
 	}
 
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class ShowTestResponse extends HopoDto<ShowTestResponse, TestEntity> {
+		private Long id;
+		private String name;
+		@SerializedName("active")
+		private boolean isActive;
+	}
+
 	@Service
-	public static class SaveTestServiceImpl extends HopoService<TestEntity> {
-		public SaveTestServiceImpl(RepositoryRegistry repositoryRegistry) {
+	public static class TestServiceImpl extends HopoService<TestEntity> {
+		public TestServiceImpl(RepositoryRegistry repositoryRegistry) {
 			super(repositoryRegistry);
 		}
 	}
-
-	public interface TestRepository extends HopoRepository<TestEntity>, JpaRepository<TestEntity, Long> {}
 
 	@Test
 	@WithMockUser(username = "testUser")
@@ -113,17 +124,13 @@ public class HopoControllerTest {
 		// Given
 		Map<String, Object> params = new HashMap<>();
 		params.put("name", "김수완");
-		params.put("active", true);
+		params.put("active", false);
 
 		when(dtoRegistry.getRequest("test", "save")).thenReturn(new SaveTestRequest());
 		when(dtoRegistry.getResponse("test", "save")).thenReturn(new SaveTestResponse());
-		when(serviceRegistry.getService("test")).thenReturn(saveTestService);
+		when(serviceRegistry.getService("test")).thenReturn(testService);
 
-		TestEntity testEntity = new TestEntity(1L, "김수완", true);
-		when(testRepository.save(any(TestEntity.class))).thenReturn(testEntity);
-		when(repositoryRegistry.getRepository("test")).thenReturn(testRepository);
-
-		when(saveTestService.save(any(HopoDto.class), any(String.class))).thenReturn(testEntity);
+		when(testService.save(any(HopoDto.class), any(String.class))).thenReturn(new TestEntity(1L, "김수완", false));
 
 		// When
 		ResultActions redirectResultActions = mockMvc.perform(
@@ -153,11 +160,40 @@ public class HopoControllerTest {
 	}
 
 	@Test
-	@DisplayName("저장")
-	void save_shouldReturnSuccess() {
+	@WithMockUser(username = "testUser")
+	@DisplayName("show")
+	void show_shouldCallTestServiceImplAndShow_withFieldAndValue() throws Exception {
+		// Given
+		when(dtoRegistry.getRequest("test", "show")).thenReturn(new ShowTestRequest());
+		when(dtoRegistry.getResponse("test", "show")).thenReturn(new ShowTestResponse());
+		when(serviceRegistry.getService("test")).thenReturn(testService);
+		when(testService.show(any(HopoDto.class), any(String.class), any(String.class))).thenReturn(new TestEntity(1L, "김수완", true));
+
 		// When
-		// ResultActions resultActions = mockMvc.perform(
-		// 	MockMvcRequestBuilders.get("/api/test/save")
-		// )
+		ResultActions redirectResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get("/api/test/show")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		redirectResultActions.andExpect(status().is3xxRedirection())
+			.andExpect(redirectedUrl("/api/test/hopo/show"));
+
+
+		// When
+		ResultActions finalResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get("/api/test/hopo/show")
+				.param("f", "name")
+				.param("v", "김수완")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
+
+		ShowTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), ShowTestResponse.class);
+		assertThat(response.getId()).isEqualTo(1);
+		assertThat(response.getName()).isEqualTo("김수완");
+		assertThat(response.isActive()).isTrue();
 	}
 }

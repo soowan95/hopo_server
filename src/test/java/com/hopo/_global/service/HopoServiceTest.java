@@ -79,7 +79,7 @@ public class HopoServiceTest {
 		when(hopoRepository.findByParam("id", 1)).thenReturn(Optional.of(testEntity));
 
 		// When
-		Object thisEntity = hopoService.show(testDto, "test");
+		Object thisEntity = hopoService.show(testDto, null, "test");
 
 		// Then
 		assertThat(thisEntity).isNotNull();

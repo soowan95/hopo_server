@@ -1,5 +1,6 @@
 package com.hopo._global.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,13 +60,21 @@ public class HopoController {
 
 	@GetMapping("/hopo/show")
 	@Operation(summary = "조회", description = "단건 조회")
-	protected ResponseEntity<?> show(@PathVariable String entity, @RequestParam Object value) {
+	protected ResponseEntity<?> show(@PathVariable String entity, @RequestParam String f, @RequestParam Object v) {
 		try {
-			// DTO class 결정
-			HopoDto request = dtoRegistry.getRequest(entity, "show").set(value);
+			// Request class 결정
+			HopoDto requestPrototype = dtoRegistry.getRequest(entity, "show");
+
+			// field 이름이 파라미터로 들어오지 않으면 기본 index 0 에 set
+			f = StringUtils.trimToNull(f);
+			if (f == null)
+				requestPrototype.set(v);
+			else
+				requestPrototype.set(f, v);
 
 			HopoService service = serviceRegistry.getService(entity);
-			return ResponseEntity.ok(service.show(request, entity));
+
+			return ResponseEntity.ok(dtoRegistry.getResponse(entity, "show").of(service.show(requestPrototype, f, entity)));
 		} catch (Exception e) {
 			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
 			throw new HttpCodeHandleException("NO_SUCH_DATA");

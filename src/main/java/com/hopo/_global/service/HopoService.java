@@ -51,11 +51,15 @@ public class HopoService<E extends Hopo> {
 	 * @param request {@link HopoDto HopoDto} column 명
 	 * @return entity
 	 */
-	public E show(HopoDto request, String entityName) throws
+	public E show(HopoDto request, String fieldName, String entityName) throws
 		InvocationTargetException,
 		NoSuchMethodException,
 		IllegalAccessException {
-		Object[] args = request.get(0);
+		Object[] args;
+		if (fieldName == null)
+			args = request.get(0);
+		else
+			args = new Object[]{fieldName ,request.get(fieldName)};
 		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 		try {
 			Method findByParamMethod = repositoryClass.getMethod("findByParam", String.class, Object.class);
@@ -89,7 +93,8 @@ public class HopoService<E extends Hopo> {
 	public E update(HopoDto request, String entityName) {
 		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 		try {
-			E entity = show(request, entityName);
+			E entity = show(request, null, entityName);
+			request.map(entity, request);
 			Method updateMethod = repositoryClass.getMethod("save", Hopo.class);
 			return (E)updateMethod.invoke(repositoryClass, entity);
 		} catch (Exception e) {
@@ -106,7 +111,7 @@ public class HopoService<E extends Hopo> {
 	public boolean delete(HopoDto request, String entityName) {
 		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
 		try {
-			E entity = show(request, entityName);
+			E entity = show(request, null, entityName);
 			Method deleteByIdMethod = repositoryClass.getMethod("deleteById", Long.class);
 			deleteByIdMethod.invoke(repositoryClass, entity.getId());
 			return true;
