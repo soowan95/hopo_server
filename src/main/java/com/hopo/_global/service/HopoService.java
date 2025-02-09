@@ -3,6 +3,7 @@ package com.hopo._global.service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -37,9 +38,9 @@ public class HopoService<E extends Hopo> {
 		NoSuchMethodException,
 		IllegalAccessException {
 		try {
-			Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
-			Method saveMethod = repositoryClass.getMethod("save", Hopo.class);
-			return (E)saveMethod.invoke(repositoryClass, request.map(request));
+			Object repository = repositoryRegistry.getRepository(entityName);
+			Method saveMethod = repository.getClass().getMethod("save", Hopo.class);
+			return (E)saveMethod.invoke(repository, request.map(request));
 		} catch (Exception e) {
 			log.error("Exception: {} \n Message: {}", e.getClass().getSimpleName(), e.getMessage());
 			throw e;
@@ -48,7 +49,9 @@ public class HopoService<E extends Hopo> {
 
 	/**
 	 * 단건 조회
-	 * @param request {@link HopoDto HopoDto} column 명
+	 * @param request {@link HopoDto HopoDto} 
+	 * @param fieldName {@link String String} field 명
+	 * @param entityName {@link String String} entity 명
 	 * @return entity
 	 */
 	public E show(HopoDto request, String fieldName, String entityName) throws
@@ -60,10 +63,10 @@ public class HopoService<E extends Hopo> {
 			args = request.get(0);
 		else
 			args = new Object[]{fieldName ,request.get(fieldName)};
-		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
-			Method findByParamMethod = repositoryClass.getMethod("findByParam", String.class, Object.class);
-			return (E)findByParamMethod.invoke(repositoryClass, args[0].toString(), args[1]);
+			Method findByParamMethod = repository.getClass().getMethod("findByParam", String.class, Object.class);
+			return (E)((Optional<?>) findByParamMethod.invoke(repository, args[0].toString(), args[1])).orElse(null);
 		} catch (Exception e) {
 			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
 			throw e;
@@ -75,10 +78,10 @@ public class HopoService<E extends Hopo> {
 	 * @return List
 	 */
 	public List<E> showAll(String entityName) {
-		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
-			Method findAllMethod = repositoryClass.getMethod("findAll");
-			return (List<E>)findAllMethod.invoke(repositoryClass);
+			Method findAllMethod = repository.getClass().getMethod("findAll");
+			return (List<E>)findAllMethod.invoke(repository);
 		} catch (Exception e) {
 			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
 			return null;
@@ -91,12 +94,12 @@ public class HopoService<E extends Hopo> {
 	 * @return boolean
 	 */
 	public E update(HopoDto request, String entityName) {
-		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
 			E entity = show(request, null, entityName);
 			request.map(entity, request);
-			Method updateMethod = repositoryClass.getMethod("save", Hopo.class);
-			return (E)updateMethod.invoke(repositoryClass, entity);
+			Method updateMethod = repository.getClass().getMethod("save", Hopo.class);
+			return (E)updateMethod.invoke(repository, entity);
 		} catch (Exception e) {
 			log.error("데이터 갱신 중 문제가 발생했습니다. \n Message: {}", e.getMessage());
 			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다.");
@@ -109,11 +112,11 @@ public class HopoService<E extends Hopo> {
 	 * @return boolean
 	 */
 	public boolean delete(HopoDto request, String entityName) {
-		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
 			E entity = show(request, null, entityName);
-			Method deleteByIdMethod = repositoryClass.getMethod("deleteById", Long.class);
-			deleteByIdMethod.invoke(repositoryClass, entity.getId());
+			Method deleteByIdMethod = repository.getClass().getMethod("deleteById", Long.class);
+			deleteByIdMethod.invoke(repository, entity.getId());
 			return true;
 		} catch (Exception e) {
 			log.error("데이터 삭제 중 문제가 발생했습니다. \n Message: {}", e.getMessage());
@@ -124,21 +127,22 @@ public class HopoService<E extends Hopo> {
 	/**
 	 * 중복된 데이터가 있는지 확인한다.
 	 * @param field {@link String String} column 명
-	 * @param v {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
+	 * @param value {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
 	 * @return Boolean
 	 */
-	public Boolean checkDuplicate(String field, Object v, String entityName) {
-		Class<?> repositoryClass = repositoryRegistry.getRepository(entityName).getClass();
+	public Boolean checkDuplicate(String field, Object value, String entityName) {
+		Object repository = repositoryRegistry.getRepository(entityName);
 		String exceptionCode = switch (field) {
 			case "code" -> "DUPLICATE_CODE";
 			case "id" -> "DUPLICATE_ID";
 			default -> "NO_SUCH_FIELD";
 		};
 		try {
-			Method findByParamMethod = repositoryClass.getMethod("findByParam", String.class, Object.class);
-			if (findByParamMethod.invoke(repositoryClass, field, v) == null)
+			Method findByParamMethod = repository.getClass().getMethod("findByParam", String.class, Object.class);
+			if (((Optional<?>) findByParamMethod.invoke(repository, field, value)).isPresent())
 				throw new Exception();
 		} catch (Exception e) {
+			log.error("시스템 오류가 발생했습니다. \n Message: {}", e.getMessage());
 			throw new HttpCodeHandleException(exceptionCode);
 		}
 		return true;
