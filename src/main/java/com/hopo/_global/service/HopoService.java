@@ -59,10 +59,10 @@ public class HopoService<E extends Hopo> {
 		NoSuchMethodException,
 		IllegalAccessException {
 		Object[] args;
-		if (fieldName == null)
+		if (fieldName.isEmpty())
 			args = request.get(0);
 		else
-			args = new Object[]{fieldName ,request.get(fieldName)};
+			args = new Object[]{fieldName, request.get(fieldName)};
 		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
 			Method findByParamMethod = repository.getClass().getMethod("findByParam", String.class, Object.class);

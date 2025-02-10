@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +26,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.reflect.TypeToken;
 import com.hopo._config.annotation.ControllerTest;
 import com.hopo._config.registry.DtoRegistry;
 import com.hopo._config.registry.RepositoryRegistry;
@@ -83,6 +86,7 @@ public class HopoControllerTest {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class ShowTestRequest extends HopoDto<ShowTestRequest, TestEntity> {
+		private Long id;
 		private String name;
 		@SerializedName("active")
 		private boolean isActive;
@@ -195,5 +199,78 @@ public class HopoControllerTest {
 		assertThat(response.getId()).isEqualTo(1);
 		assertThat(response.getName()).isEqualTo("김수완");
 		assertThat(response.isActive()).isTrue();
+	}
+
+	@Test
+	@WithMockUser(username = "testUser")
+	@DisplayName("show")
+	void show_shouldCallTestServiceImplAndShow_withOnlyValue() throws Exception {
+		// Given
+		when(dtoRegistry.getRequest("test", "show")).thenReturn(new ShowTestRequest());
+		when(dtoRegistry.getResponse("test", "show")).thenReturn(new ShowTestResponse());
+		when(serviceRegistry.getService("test")).thenReturn(testService);
+		when(testService.show(any(HopoDto.class), any(String.class), any(String.class))).thenReturn(new TestEntity(1L, "김수완", true));
+
+		// When
+		ResultActions redirectResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get("/api/test/show")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		redirectResultActions.andExpect(status().is3xxRedirection())
+			.andExpect(redirectedUrl("/api/test/hopo/show"));
+
+
+		// When
+		ResultActions finalResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get("/api/test/hopo/show")
+				.param("v", "1")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
+
+		ShowTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), ShowTestResponse.class);
+		assertThat(response.getId()).isEqualTo(1);
+		assertThat(response.getName()).isEqualTo("김수완");
+		assertThat(response.isActive()).isTrue();
+	}
+
+	@Test
+	@WithMockUser(username = "testUser")
+	@DisplayName("showAll")
+	void show_all_shouldCallTestServiceImplAndShowAll() throws Exception {
+		// Given
+		when(dtoRegistry.getResponse("test", "show")).thenReturn(new ShowTestResponse());
+		when(serviceRegistry.getService("test")).thenReturn(testService);
+		when(testService.showAll("test")).thenReturn(List.of(new TestEntity(1L, "김수완", false), new TestEntity(2L, "박수희", true)));
+
+		// When
+		ResultActions redirectResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get("/api/test/show_all")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		redirectResultActions.andExpect(status().is3xxRedirection())
+			.andExpect(redirectedUrl("/api/test/hopo/show_all"));
+
+		// When
+		ResultActions finalResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get("/api/test/hopo/show_all")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
+
+		List<ShowTestResponse> responseList = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), new TypeToken<List<ShowTestResponse>>(){}.getType());
+		assertThat(responseList.size()).isEqualTo(2);
+		assertThat(responseList.get(0).getName()).isEqualTo("김수완");
+		assertThat(responseList.get(0).isActive()).isFalse();
+		assertThat(responseList.get(1).getName()).isEqualTo("박수희");
+		assertThat(responseList.get(1).isActive()).isTrue();
 	}
 }

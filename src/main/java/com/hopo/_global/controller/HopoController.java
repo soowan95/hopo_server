@@ -1,5 +1,8 @@
 package com.hopo._global.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hopo._config.registry.DtoRegistry;
 import com.hopo._config.registry.ServiceRegistry;
 import com.hopo._global.dto.HopoDto;
+import com.hopo._global.entity.Hopo;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.service.HopoService;
 
@@ -44,6 +48,7 @@ public class HopoController {
 			ObjectMapper objectMapper = new ObjectMapper();
 			HopoDto request = objectMapper.readValue(requestBody, requestClass);
 
+			// Service class 결정
 			HopoService service = serviceRegistry.getService(entity);
 
 			// Response class 결정
@@ -60,14 +65,14 @@ public class HopoController {
 
 	@GetMapping("/hopo/show")
 	@Operation(summary = "조회", description = "단건 조회")
-	protected ResponseEntity<?> show(@PathVariable String entity, @RequestParam String f, @RequestParam Object v) {
+	protected ResponseEntity<?> show(@PathVariable String entity, @RequestParam(defaultValue = "") String f, @RequestParam Object v) {
 		try {
 			// Request class 결정
 			HopoDto requestPrototype = dtoRegistry.getRequest(entity, "show");
 
 			// field 이름이 파라미터로 들어오지 않으면 기본 index 0 에 set
-			f = StringUtils.trimToNull(f);
-			if (f == null)
+			f = StringUtils.trimToEmpty(f);
+			if (f.isEmpty())
 				requestPrototype.set(v);
 			else
 				requestPrototype.set(f, v);
@@ -78,6 +83,27 @@ public class HopoController {
 		} catch (Exception e) {
 			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
 			throw new HttpCodeHandleException("NO_SUCH_DATA");
+		}
+	}
+
+	@GetMapping("/hopo/show_all")
+	@Operation(summary = "조회", description = "전체 조회")
+	protected ResponseEntity<List<HopoDto>> showAll(@PathVariable String entity) {
+		try {
+			// Service class 결정
+			HopoService service = serviceRegistry.getService(entity);
+
+			// Request class 결정
+			HopoDto responsePrototype = dtoRegistry.getResponse(entity, "show");
+
+			List<HopoDto> entityList = (List<HopoDto>)service.showAll(entity).stream()
+				.map(responsePrototype::of)
+				.collect(Collectors.toList());
+
+			return ResponseEntity.ok(entityList);
+		} catch (Exception e) {
+			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
+			throw new HttpCodeHandleException("SYSTEM_ERROR");
 		}
 	}
 }
