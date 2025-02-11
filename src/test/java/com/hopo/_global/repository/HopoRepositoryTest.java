@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.hopo._global.entity.Hopo;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -23,7 +24,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 public class HopoRepositoryTest {
 
 	@InjectMocks
-	private CustomHopoRepositoryImpl<Object> hopoRepository;
+	private HopoRepositoryImpl<Hopo> hopoRepository;
 
 	@Mock
 	private JPAQueryFactory queryFactory;
@@ -52,7 +53,7 @@ public class HopoRepositoryTest {
 		when(jpaQuery.fetchOne()).thenReturn(someEntity);
 
 		// When
-		Optional<Object> result = hopoRepository.findByParam(someField, someValue);
+		Optional<Object> result = Optional.ofNullable(hopoRepository.findByParam(someField, someValue));
 
 		// Then
 		assertThat(Optional.of(someEntity)).isEqualTo(result);

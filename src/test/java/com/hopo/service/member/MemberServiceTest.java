@@ -43,7 +43,7 @@ public class MemberServiceTest {
 
 		// When
 		when(memberRepository.save(any(Member.class))).thenReturn(Member.builder()
-			.id(request.getId())
+			.loginId(request.getLoginId())
 			.password(encryptePw)
 			.name(request.getName())
 			.email(request.getEmail())
@@ -53,7 +53,7 @@ public class MemberServiceTest {
 		MemberResponse response = memberService.signUp(request);
 
 		// Then
-		assertThat(response.getId()).isEqualTo(request.getId());
+		assertThat(response.getId()).isEqualTo(request.getLoginId());
 		assertThat(passwordEncoder.matches(request.getPassword(), response.getPassword())).isTrue();
 		assertThat(response.getName()).isEqualTo(request.getName());
 		assertThat(response.getEmail()).isEqualTo(request.getEmail());
@@ -67,7 +67,7 @@ public class MemberServiceTest {
 
 	private SignUpRequest signUpRequest() {
 		return SignUpRequest.builder()
-			.id("test")
+			.loginId("test")
 			.password("test")
 			.name("test")
 			.email("test@test.com")
@@ -81,13 +81,13 @@ public class MemberServiceTest {
 	void idDuplicate() {
 		// Given
 		String newMemberId = "test";
-		Member mockMember = Member.builder().id("test").build();
+		Member mockMember = Member.builder().loginId("test").build();
 
 		// When
 		when(memberRepository.findByParam("id", newMemberId)).thenReturn(Optional.of(mockMember));
 
 		// Then
-		assertThatThrownBy(() -> memberService.checkDuplicate("id", newMemberId)).isInstanceOf(HttpCodeHandleException.class);
+		assertThatThrownBy(() -> memberService.checkDuplicate("id", newMemberId, "member")).isInstanceOf(HttpCodeHandleException.class);
 	}
 
 	@Test
@@ -99,7 +99,7 @@ public class MemberServiceTest {
 		// When
 		when(memberRepository.findByParam("id", newMemberId)).thenReturn(Optional.empty());
 
-		Boolean checkDuplicate = memberService.checkDuplicate("id", newMemberId);
+		Boolean checkDuplicate = memberService.checkDuplicate("id", newMemberId, "member");
 
 		// Then
 		assertThat(checkDuplicate).isTrue();

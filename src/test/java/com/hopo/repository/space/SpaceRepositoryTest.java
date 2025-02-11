@@ -62,7 +62,7 @@ public class SpaceRepositoryTest {
 
 	private Member member() {
 		return Member.builder()
-			.id("test")
+			.loginId("test")
 			.email("test")
 			.password("test")
 			.name("test")
@@ -71,7 +71,7 @@ public class SpaceRepositoryTest {
 
 	private Member member2() {
 		return Member.builder()
-			.id("test2")
+			.loginId("test2")
 			.email("test2")
 			.password("test2")
 			.name("test2")

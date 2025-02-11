@@ -81,8 +81,8 @@ public class BelongServiceTest {
 		// Given
 		String address = "test";
 		Belong belong = Belong.builder().code("1234123412").address("test").build();
-		Member member1 = Member.builder().name("test1").email("test1").id("test1").password("test1").build();
-		Member member2 = Member.builder().name("testtest").email("test2").id("test2").password("test2").build();
+		Member member1 = Member.builder().name("test1").email("test1").loginId("test1").password("test1").build();
+		Member member2 = Member.builder().name("testtest").email("test2").loginId("test2").password("test2").build();
 		Space space1 = Space.builder().member(member1).belong(belong).build();
 		Space space2 = Space.builder().member(member2).belong(belong).build();
 		belong.setSpaces(List.of(space1, space2));
@@ -102,8 +102,8 @@ public class BelongServiceTest {
 		// Given
 		String address = "test";
 		Belong belong = Belong.builder().code("1234123412").address("test").build();
-		Member member1 = Member.builder().name("test1").email("test1").id("test1").password("test1").build();
-		Member member2 = Member.builder().name("test2").email("test2").id("test2").password("test2").build();
+		Member member1 = Member.builder().name("test1").email("test1").loginId("test1").password("test1").build();
+		Member member2 = Member.builder().name("test2").email("test2").loginId("test2").password("test2").build();
 		Space space1 = Space.builder().member(member1).belong(belong).build();
 		Space space2 = Space.builder().member(member2).belong(belong).build();
 		belong.setSpaces(List.of(space1, space2));

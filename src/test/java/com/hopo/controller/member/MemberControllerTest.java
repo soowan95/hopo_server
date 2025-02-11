@@ -57,7 +57,7 @@ public class MemberControllerTest {
 
 	private SignUpRequest signUpRequest() {
 		return SignUpRequest.builder()
-			.id("test")
+			.loginId("test")
 			.password("test")
 			.name("test")
 			.email("test@test.com")

@@ -7,7 +7,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._utils.HopoStringUtils;
@@ -20,9 +19,10 @@ import lombok.extern.slf4j.Slf4j;
  * @param <E> entity
  */
 @Slf4j
-public class HopoDto<D, E> {
+public class HopoDto<D extends HopoDto, E> {
 
 	private final Class<E> entityClass;
+	private final Class<D> dtoClass;
 
 	/**
 	 * Entity Class 를 가져오기 위한 생성자
@@ -30,6 +30,7 @@ public class HopoDto<D, E> {
 	public HopoDto() {
 		this.entityClass = (Class<E>) ((ParameterizedType) getClass()
 			.getGenericSuperclass()).getActualTypeArguments()[1];
+		this.dtoClass = (Class<D>) this.getClass();
 	}
 
 	/**
@@ -39,9 +40,6 @@ public class HopoDto<D, E> {
 	 */
 	public D of(E e) {
 		try {
-			// D 클래스 타입 가져오기
-			Class<D> dtoClass = (Class<D>) this.getClass();
-
 			return (D) doBuild(dtoClass, e);
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
 			throw new HttpCodeHandleException(500, "DTO 로 변환에 실패했습니다." + ex.getMessage());
@@ -69,9 +67,8 @@ public class HopoDto<D, E> {
 	 * request 를 기존 entity 에 맵핑한다
 	 * @param e entity
 	 * @param d request
-	 * @return entity
 	 */
-	public E map(E e, D d) {
+	public void map(E e, D d) {
 		try {
 			// d의 필드 가져오기
 			Field[] dFields = d.getClass().getDeclaredFields();
@@ -90,8 +87,6 @@ public class HopoDto<D, E> {
 					// e에 해당 필드가 없는 경우 무시
 				}
 			}
-
-			return e; // 수정된 e 반환
 		} catch (IllegalAccessException error) {
 			throw new HttpCodeHandleException(500, "맵핑 중 오류 발생" + error.getMessage());
 		}
@@ -110,16 +105,7 @@ public class HopoDto<D, E> {
 		Object value = null;
 		String field;
 		try {
-			// 현재 클래스의 타입 가져오기
-			Class<D> dtoClass = (Class<D>) this.getClass();
-
-			// 클래스의 필드 순서 가져오기
-			Field[] fields = dtoClass.getDeclaredFields();
-
-			// 필드 이름을 순서대로 배열로 변환
-			List<String> fieldNames = Arrays.stream(fields)
-				.map(Field::getName)
-				.toList();
+			List<String> fieldNames = getFieldNames(dtoClass);
 			field = fieldNames.get(index);
 
 			// 클래스의 메서드 가져오기
@@ -153,19 +139,128 @@ public class HopoDto<D, E> {
 	}
 
 	/**
-	 * index 번째의 fieldName 또는 value 를 가져은다.
+	 * index 번째의 fieldName 또는 value 를 가져온다.
 	 * @param index {@link Integer Integer} default = 0
-	 * @param args {@link String String} field 또는 value
+	 * @param target {@link String String} field 또는 value
 	 * @return Object
 	 */
-	public Object get(Integer index, String args) {
+	public Object get(Integer index, String target) {
 		if (index == null)
 			index = 0;
-		return switch (args) {
+		return switch (target) {
 			case "field" -> get(index)[0];
 			case "value" -> get(index)[1];
 			default -> get(index);
 		};
+	}
+
+	/**
+	 * field 이름으로 value 를 가져온다.
+	 * @param field {@link String String} field 이름
+	 * @return value
+	 */
+	public Object get(String field) {
+		return get(getFieldIndex(field));
+	}
+
+	/**
+	 * index 번째의 field 에 value 를 저장한다.
+	 * @param index {@link Integer Integer} default = 0
+	 * @param value {@link Object Object}
+	 */
+	public void set(Integer index, Object value) {
+		if (index == null)
+			index = 0;
+		try {
+			List<String> fieldNames = getFieldNames(dtoClass);
+			List<? extends Class<?>> fieldTypes = getFieldTypes(dtoClass);
+			String field = fieldNames.get(index);
+			Class<?> fieldType = fieldTypes.get(index);
+			String setMethodName = "set" + HopoStringUtils.capitalize(field);
+
+			Method setMethod = dtoClass.getDeclaredMethod(setMethodName, fieldType);
+			setMethod.invoke(this, castValue(value, fieldType));
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			log.error(e.getMessage());
+			throw new HttpCodeHandleException(500, e.getMessage());
+		}
+	}
+
+	/**
+	 * field 이름에 value 를 저장한다.
+	 * @param field {@link String String} field 이름
+	 * @param value {@link Object Object} 저장할 값
+	 */
+	public void set(String field, Object value) {
+		set(getFieldIndex(field), value);
+	}
+
+	/**
+	 * 첫번째 field 에 value 를 저장한다.
+	 * @param value {@link Object Object}
+	 */
+	public void set(Object value) {
+		set(0, value);
+	}
+
+	/**
+	 * field 이름을 순서대로 가져온다
+	 * @param dtoClass {@link HopoDto HopoDto}
+	 * @return List
+	 */
+	private List<String> getFieldNames(Class<D> dtoClass) {
+		// 클래스의 필드 순서 가져오기
+		Field[] fields = dtoClass.getDeclaredFields();
+
+		// 필드 이름을 순서대로 배열로 변환
+		return Arrays.stream(fields)
+			.map(Field::getName)
+			.toList();
+	}
+
+	/**
+	 * field 이름을 통해 index 를 가져온다
+	 * @param field {@link String String}
+	 * @return Integer
+	 */
+	private Integer getFieldIndex(String field) {
+		return getFieldNames(dtoClass).indexOf(field);
+	}
+
+	/**
+	 * field 타입을 순서대로 가져온다
+	 * @param dtoClass {@link HopoDto HopoDto}
+	 * @return List
+	 */
+	private List<? extends Class<?>> getFieldTypes(Class<D> dtoClass) {
+		// 클래스의 필드 순서 가져오기
+		Field[] fields = dtoClass.getDeclaredFields();
+
+		// 필드 타입을 순서대로 배열로 변환
+		return Arrays.stream(fields)
+			.map(Field::getType)
+			.toList();
+	}
+
+	/**
+	 * Object 를 field 의 Type 으로 형변환
+	 * @param value {@link Object Object}
+	 * @param fieldType {@link Class Class} field 의 Type
+	 * @return Object
+	 */
+	private Object castValue(Object value, Class<?> fieldType) {
+		if (value == null) return null;
+
+		if (fieldType.isAssignableFrom(value.getClass())) return value;
+
+		if (fieldType == Integer.class || fieldType == int.class)
+			return Integer.valueOf(value.toString());
+		else if (fieldType == Long.class || fieldType == long.class)
+			return Long.valueOf(value.toString());
+		else if (fieldType == Double.class || fieldType == double.class)
+			return Double.valueOf(value.toString());
+		else
+			return value.toString();
 	}
 
 	/**
@@ -186,8 +281,12 @@ public class HopoDto<D, E> {
 		Method[] methods = builder.getClass().getDeclaredMethods();
 		for (Method method : methods) {
 			String fieldName = method.getName();
+			Method thisMethod;
 			try {
-				Method thisMethod = o.getClass().getMethod("get" + HopoStringUtils.capitalize(fieldName));
+				if (fieldName.startsWith("is"))
+					thisMethod = o.getClass().getMethod(fieldName);
+				else
+				 thisMethod = o.getClass().getMethod("get" + HopoStringUtils.capitalize(fieldName));
 				Object value = thisMethod.invoke(o);
 				method.invoke(builder, value);
 			} catch (NoSuchMethodException ignore) {

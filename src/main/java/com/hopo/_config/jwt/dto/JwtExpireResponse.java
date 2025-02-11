@@ -1,4 +1,4 @@
-package com.hopo.member.dto.response;
+package com.hopo._config.jwt.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

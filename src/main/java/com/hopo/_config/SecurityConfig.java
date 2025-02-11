@@ -17,13 +17,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.hopo._config.jwt.JwtAuthenticationEntryPoint;
-import com.hopo._config.jwt.JwtFilter;
+import com.hopo._filter.JwtFilter;
+import com.hopo._filter.PathRedirectFilter;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity // Spring Security 활성화
-@EnableMethodSecurity // @preAutorize 어노테이션 메소드 단위로 추가
+@EnableMethodSecurity // @preAuthorize 어노테이션 메소드 단위로 추가
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -41,7 +42,7 @@ public class SecurityConfig {
 
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	private final JwtFilter jwtFilter;
-
+	private final PathRedirectFilter pathRedirectFilter;
 	// 비밀번호 암호화
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -71,6 +72,7 @@ public class SecurityConfig {
 			.exceptionHandling(
 				(exceptionConfig) -> exceptionConfig.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 			.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(pathRedirectFilter, JwtFilter.class)
 			.sessionManagement((sessionConfig) -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests((authorizeRequests) -> authorizeRequests
 				.requestMatchers(PERMIT_URL_ARRAY).permitAll()

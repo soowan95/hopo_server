@@ -1,4 +1,4 @@
-package com.hopo._config.jwt;
+package com.hopo._filter;
 
 import java.io.IOException;
 
@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hopo.member.dto.response.JwtExpireResponse;
+import com.hopo._config.jwt.TokenProvider;
+import com.hopo._config.jwt.dto.JwtExpireResponse;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;

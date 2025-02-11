@@ -2,15 +2,12 @@ package com.hopo._global.dto;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import lombok.AllArgsConstructor;
@@ -44,7 +41,7 @@ class HopoDtoTest {
 	@Builder
 	@AllArgsConstructor
 	@NoArgsConstructor
-	static class GetTestDto extends HopoDto<TestDto, TestEntity> {
+	static class GetTestDto extends HopoDto<GetTestDto, TestEntity> {
 		private String name;
 		private int age;
 		private boolean isThird;
@@ -88,6 +85,13 @@ class HopoDtoTest {
 		);
 	}
 
+	static Stream<Arguments> setTestCases() {
+		return Stream.of(
+			Arguments.of(0, "김수완"),
+			Arguments.of(1, 30)
+		);
+	}
+
 	@ParameterizedTest
 	@MethodSource("getTestCases")
 	@DisplayName("index 번째 있는 값을 가져온다")
@@ -117,5 +121,17 @@ class HopoDtoTest {
 		// Then
 		assertThat(field).isEqualTo(expectField);
 		assertThat(value).isEqualTo(expectValue);
+	}
+
+	@ParameterizedTest
+	@MethodSource("setTestCases")
+	@DisplayName("index 번째 필드에 값을 저장한다")
+	void set_shouldSetValueAtIndex(int index, Object value) {
+		// When
+		TestDto request = new TestDto();
+		request.set(index, value);
+
+		// Then
+		assertThat(request.get(index, "value")).isEqualTo(value);
 	}
 }

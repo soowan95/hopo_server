@@ -5,65 +5,87 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
+import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.entity.Hopo;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.repository.HopoRepository;
 
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * 모드 Service 에서 공동으로 사용할 class
- * @param <E> Entity class
- * @param <ID> PK type
+ * @param <E> Entity
  */
-@NoArgsConstructor(force = true)
+@Service
+@RequiredArgsConstructor
 @Slf4j
-public class HopoService<E extends Hopo, ID> {
+public class HopoService<E extends Hopo> {
 
-	private final HopoRepository<E, ID> repository;
-
-	public HopoService(HopoRepository<E, ID> repository) {
-		this.repository = repository;
-	}
+	private final RepositoryRegistry repositoryRegistry;
 
 	/**
 	 * 엔터티 저장
 	 * @param request {@link HopoDto HopoDto}
 	 * @return boolean
 	 */
-	public E save(HopoDto request) {
+	public E save(HopoDto request, String entityName) throws
+		InvocationTargetException,
+		NoSuchMethodException,
+		IllegalAccessException {
 		try {
-			assert repository != null;
-			System.out.println(request.map(request));
-			return repository.save((E) request.map(request));
+			Object repository = repositoryRegistry.getRepository(entityName);
+			Method saveMethod = repository.getClass().getMethod("save", Hopo.class);
+			return (E)saveMethod.invoke(repository, request.map(request));
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			throw new HttpCodeHandleException(500, "데이터 저장에 실패했습니다. \n Message: " + e.getMessage());
+			log.error("Exception: {} \n Message: {}", e.getClass().getSimpleName(), e.getMessage());
+			throw e;
 		}
 	}
 
-
 	/**
 	 * 단건 조회
-	 * @param request {@link HopoDto HopoDto} column 명
+	 * @param request {@link HopoDto HopoDto} 
+	 * @param fieldName {@link String String} field 명
+	 * @param entityName {@link String String} entity 명
 	 * @return entity
 	 */
-	public E show(HopoDto request) {
-		Object[] args = request.get(0);
-		assert repository != null;
-		return repository.findByParam(args[0].toString(), args[1])
-			.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
+	public E show(HopoDto request, String fieldName, String entityName) throws
+		InvocationTargetException,
+		NoSuchMethodException,
+		IllegalAccessException {
+		Object[] args;
+		if (fieldName.isEmpty())
+			args = request.get(0);
+		else
+			args = new Object[]{fieldName, request.get(fieldName)};
+		Object repository = repositoryRegistry.getRepository(entityName);
+		try {
+			Method findByParamMethod = repository.getClass().getMethod("findByParam", String.class, Object.class);
+			return (E)((Optional<?>) findByParamMethod.invoke(repository, args[0].toString(), args[1])).orElse(null);
+		} catch (Exception e) {
+			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
+			throw e;
+		}
 	}
 
 	/**
 	 * 전체 조회
 	 * @return List
 	 */
-	public List<E> showAll() {
-		assert repository != null;
-		return repository.findAll();
+	public List<E> showAll(String entityName) {
+		Object repository = repositoryRegistry.getRepository(entityName);
+		try {
+			Method findAllMethod = repository.getClass().getMethod("findAll");
+			return (List<E>)findAllMethod.invoke(repository);
+		} catch (Exception e) {
+			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
+			return null;
+		}
 	}
 
 	/**
@@ -71,16 +93,16 @@ public class HopoService<E extends Hopo, ID> {
 	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
 	 * @return boolean
 	 */
-	public E update(HopoDto request) {
+	public E update(HopoDto request, String entityName) {
+		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
-			Object[] args = request.get(0);
-			assert repository != null;
-			E entity = repository.findByParam(args[0].toString(), args[1])
-				.orElseThrow(() -> new HttpCodeHandleException("NO_SUCH_DATA"));
-			return repository.save((E) request.map(entity, request));
+			E entity = show(request, null, entityName);
+			request.map(entity, request);
+			Method updateMethod = repository.getClass().getMethod("save", Hopo.class);
+			return (E)updateMethod.invoke(repository, entity);
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다. \n Message: " + e.getMessage());
+			log.error("데이터 갱신 중 문제가 발생했습니다. \n Message: {}", e.getMessage());
+			throw new HttpCodeHandleException(500, "데이터 갱신 중 문제가 발생했습니다.");
 		}
 	}
 
@@ -89,32 +111,40 @@ public class HopoService<E extends Hopo, ID> {
 	 * @param request {@link HopoDto HopoDto} 첫 번째 field 는 PK *
 	 * @return boolean
 	 */
-	public <D> boolean delete(HopoDto request) {
+	public boolean delete(HopoDto request, String entityName) {
+		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
-			repository.deleteById((ID) request.get(0, "value"));
+			E entity = show(request, null, entityName);
+			Method deleteByIdMethod = repository.getClass().getMethod("deleteById", Long.class);
+			deleteByIdMethod.invoke(repository, entity.getId());
 			return true;
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			throw new HttpCodeHandleException(500, "데이터 삭제 중 문제가 발생했습니다. \n Message: " + e.getMessage());
+			log.error("데이터 삭제 중 문제가 발생했습니다. \n Message: {}", e.getMessage());
+			throw new HttpCodeHandleException(500, "데이터 삭제 중 문제가 발생했습니다.");
 		}
 	}
 
 	/**
 	 * 중복된 데이터가 있는지 확인한다.
 	 * @param field {@link String String} column 명
-	 * @param v {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
+	 * @param value {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
 	 * @return Boolean
 	 */
-	public Boolean checkDuplicate(String field, Object v) {
+	public Boolean checkDuplicate(String field, Object value, String entityName) {
+		Object repository = repositoryRegistry.getRepository(entityName);
 		String exceptionCode = switch (field) {
 			case "code" -> "DUPLICATE_CODE";
 			case "id" -> "DUPLICATE_ID";
 			default -> "NO_SUCH_FIELD";
 		};
-		assert repository != null;
-		repository.findByParam(field, v).ifPresent(e -> {
+		try {
+			Method findByParamMethod = repository.getClass().getMethod("findByParam", String.class, Object.class);
+			if (((Optional<?>) findByParamMethod.invoke(repository, field, value)).isPresent())
+				throw new Exception();
+		} catch (Exception e) {
+			log.error("시스템 오류가 발생했습니다. \n Message: {}", e.getMessage());
 			throw new HttpCodeHandleException(exceptionCode);
-		});
+		}
 		return true;
 	}
 }
