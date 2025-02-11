@@ -139,7 +139,7 @@ public class HopoDto<D extends HopoDto, E> {
 	}
 
 	/**
-	 * index 번째의 fieldName 또는 value 를 가져은다.
+	 * index 번째의 fieldName 또는 value 를 가져온다.
 	 * @param index {@link Integer Integer} default = 0
 	 * @param target {@link String String} field 또는 value
 	 * @return Object
@@ -154,6 +154,11 @@ public class HopoDto<D extends HopoDto, E> {
 		};
 	}
 
+	/**
+	 * field 이름으로 value 를 가져온다.
+	 * @param field {@link String String} field 이름
+	 * @return value
+	 */
 	public Object get(String field) {
 		return get(getFieldIndex(field));
 	}

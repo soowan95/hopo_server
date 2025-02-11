@@ -96,6 +96,25 @@ public class HopoControllerTest {
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
+	public static class UpdateTestRequest extends HopoDto<UpdateTestRequest, TestEntity> {
+		private Long id;
+		private String name;
+		@SerializedName("active")
+		private boolean isActive;
+	}
+
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class DeleteTestRequest extends HopoDto<DeleteTestRequest, TestEntity> {
+		private Long id;
+	}
+
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class SaveTestResponse extends HopoDto<SaveTestResponse, TestEntity> {
 		private Long id;
 		private String name;
@@ -114,6 +133,16 @@ public class HopoControllerTest {
 		private boolean isActive;
 	}
 
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class UpdateTestResponse extends HopoDto<UpdateTestResponse, TestEntity> {
+		private String name;
+		@SerializedName("active")
+		private boolean isActive;
+	}
+
 	@Service
 	public static class TestServiceImpl extends HopoService<TestEntity> {
 		public TestServiceImpl(RepositoryRegistry repositoryRegistry) {
@@ -126,9 +155,7 @@ public class HopoControllerTest {
 	@DisplayName("save")
 	void save_shouldCallTestServiceImplAndSave() throws Exception {
 		// Given
-		Map<String, Object> params = new HashMap<>();
-		params.put("name", "김수완");
-		params.put("active", false);
+		Map<String, Object> params = Map.of("name", "김수완", "active", false);
 
 		when(dtoRegistry.getRequest("test", "save")).thenReturn(new SaveTestRequest());
 		when(dtoRegistry.getResponse("test", "save")).thenReturn(new SaveTestResponse());
@@ -157,10 +184,11 @@ public class HopoControllerTest {
 		// Then
 		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
 
-		SaveTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), SaveTestResponse.class);
+		SaveTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(),
+			SaveTestResponse.class);
 		assertThat(response.getId()).isEqualTo(1);
 		assertThat(response.getName()).isEqualTo("김수완");
-		assertThat(response.isActive()).isTrue();
+		assertThat(response.isActive()).isFalse();
 	}
 
 	@Test
@@ -171,7 +199,8 @@ public class HopoControllerTest {
 		when(dtoRegistry.getRequest("test", "show")).thenReturn(new ShowTestRequest());
 		when(dtoRegistry.getResponse("test", "show")).thenReturn(new ShowTestResponse());
 		when(serviceRegistry.getService("test")).thenReturn(testService);
-		when(testService.show(any(HopoDto.class), any(String.class), any(String.class))).thenReturn(new TestEntity(1L, "김수완", true));
+		when(testService.show(any(HopoDto.class), any(String.class), any(String.class))).thenReturn(
+			new TestEntity(1L, "김수완", true));
 
 		// When
 		ResultActions redirectResultActions = mockMvc.perform(
@@ -182,7 +211,6 @@ public class HopoControllerTest {
 		// Then
 		redirectResultActions.andExpect(status().is3xxRedirection())
 			.andExpect(redirectedUrl("/api/test/hopo/show"));
-
 
 		// When
 		ResultActions finalResultActions = mockMvc.perform(
@@ -195,7 +223,8 @@ public class HopoControllerTest {
 		// Then
 		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
 
-		ShowTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), ShowTestResponse.class);
+		ShowTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(),
+			ShowTestResponse.class);
 		assertThat(response.getId()).isEqualTo(1);
 		assertThat(response.getName()).isEqualTo("김수완");
 		assertThat(response.isActive()).isTrue();
@@ -209,7 +238,8 @@ public class HopoControllerTest {
 		when(dtoRegistry.getRequest("test", "show")).thenReturn(new ShowTestRequest());
 		when(dtoRegistry.getResponse("test", "show")).thenReturn(new ShowTestResponse());
 		when(serviceRegistry.getService("test")).thenReturn(testService);
-		when(testService.show(any(HopoDto.class), any(String.class), any(String.class))).thenReturn(new TestEntity(1L, "김수완", true));
+		when(testService.show(any(HopoDto.class), any(String.class), any(String.class))).thenReturn(
+			new TestEntity(1L, "김수완", true));
 
 		// When
 		ResultActions redirectResultActions = mockMvc.perform(
@@ -221,7 +251,6 @@ public class HopoControllerTest {
 		redirectResultActions.andExpect(status().is3xxRedirection())
 			.andExpect(redirectedUrl("/api/test/hopo/show"));
 
-
 		// When
 		ResultActions finalResultActions = mockMvc.perform(
 			MockMvcRequestBuilders.get("/api/test/hopo/show")
@@ -232,7 +261,8 @@ public class HopoControllerTest {
 		// Then
 		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
 
-		ShowTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), ShowTestResponse.class);
+		ShowTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(),
+			ShowTestResponse.class);
 		assertThat(response.getId()).isEqualTo(1);
 		assertThat(response.getName()).isEqualTo("김수완");
 		assertThat(response.isActive()).isTrue();
@@ -245,7 +275,8 @@ public class HopoControllerTest {
 		// Given
 		when(dtoRegistry.getResponse("test", "show")).thenReturn(new ShowTestResponse());
 		when(serviceRegistry.getService("test")).thenReturn(testService);
-		when(testService.showAll("test")).thenReturn(List.of(new TestEntity(1L, "김수완", false), new TestEntity(2L, "박수희", true)));
+		when(testService.showAll("test")).thenReturn(
+			List.of(new TestEntity(1L, "김수완", false), new TestEntity(2L, "박수희", true)));
 
 		// When
 		ResultActions redirectResultActions = mockMvc.perform(
@@ -266,11 +297,112 @@ public class HopoControllerTest {
 		// Then
 		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
 
-		List<ShowTestResponse> responseList = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), new TypeToken<List<ShowTestResponse>>(){}.getType());
+		List<ShowTestResponse> responseList = new Gson().fromJson(mvcResult.getResponse().getContentAsString(),
+			new TypeToken<List<ShowTestResponse>>() {
+			}.getType());
 		assertThat(responseList.size()).isEqualTo(2);
 		assertThat(responseList.get(0).getName()).isEqualTo("김수완");
 		assertThat(responseList.get(0).isActive()).isFalse();
 		assertThat(responseList.get(1).getName()).isEqualTo("박수희");
 		assertThat(responseList.get(1).isActive()).isTrue();
+	}
+
+	@Test
+	@WithMockUser(username = "testUser")
+	@DisplayName("update")
+	void update_shouldCallTestServiceImplAndUpdate() throws Exception {
+		// Given
+		TestEntity testEntity = new TestEntity(1L, "김수완", false);
+		Map<String, Object> params = Map.of("name", "박수희", "active", true);
+		when(dtoRegistry.getRequest("test", "update")).thenReturn(new UpdateTestRequest());
+		when(dtoRegistry.getResponse("test", "update")).thenReturn(new UpdateTestResponse());
+		when(serviceRegistry.getService("test")).thenReturn(testService);
+		when(testService.update(any(HopoDto.class), any(String.class))).thenReturn(testEntity.builder()
+				.name("박수희")
+				.isActive(true)
+			.build());
+
+		// When
+		ResultActions redirectResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.put("/api/test/update")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		redirectResultActions.andExpect(status().is3xxRedirection())
+			.andExpect(redirectedUrl("/api/test/hopo/update"));
+
+		// When
+		ResultActions finalResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.put("/api/test/hopo/update")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(new Gson().toJson(params))
+		);
+
+		// Then
+		MvcResult mvcResult = finalResultActions.andExpect(status().isOk()).andReturn();
+		UpdateTestResponse response = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), UpdateTestResponse.class);
+		assertThat(response.getName()).isEqualTo("박수희");
+		assertThat(response.isActive()).isTrue();
+	}
+
+	@Test
+	@WithMockUser(username = "testUser")
+	@DisplayName("delete")
+	void delete_shouldCallTestServiceImplAndDelete_ok() throws Exception {
+		// Given
+		when(dtoRegistry.getRequest("test", "delete")).thenReturn(new DeleteTestRequest());
+		when(serviceRegistry.getService("test")).thenReturn(testService);
+		when(testService.delete(any(HopoDto.class), any(String.class))).thenReturn(true);
+
+		// When
+		ResultActions redirectResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete("/api/test/delete")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		redirectResultActions.andExpect(status().is3xxRedirection())
+			.andExpect(redirectedUrl("/api/test/hopo/delete"));
+
+		// When
+		ResultActions finalResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete("/api/test/hopo/delete")
+				.param("id", "1")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		finalResultActions.andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(username = "testUser")
+	@DisplayName("delete")
+	void delete_shouldCallTestServiceImplAndDelete_noContent() throws Exception {
+		// Given
+		when(dtoRegistry.getRequest("test", "delete")).thenReturn(new DeleteTestRequest());
+		when(serviceRegistry.getService("test")).thenReturn(testService);
+		when(testService.delete(any(HopoDto.class), any(String.class))).thenReturn(false);
+
+		// When
+		ResultActions redirectResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete("/api/test/delete")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		redirectResultActions.andExpect(status().is3xxRedirection())
+			.andExpect(redirectedUrl("/api/test/hopo/delete"));
+
+		// When
+		ResultActions finalResultActions = mockMvc.perform(
+			MockMvcRequestBuilders.delete("/api/test/hopo/delete")
+				.param("id", "1")
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+		// Then
+		finalResultActions.andExpect(status().isNoContent());
 	}
 }
