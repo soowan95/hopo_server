@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -280,17 +278,17 @@ public class HopoControllerTest {
 
 		// When
 		ResultActions redirectResultActions = mockMvc.perform(
-			MockMvcRequestBuilders.get("/api/test/show_all")
+			MockMvcRequestBuilders.get("/api/test/show/all")
 				.contentType(MediaType.APPLICATION_JSON)
 		);
 
 		// Then
 		redirectResultActions.andExpect(status().is3xxRedirection())
-			.andExpect(redirectedUrl("/api/test/hopo/show_all"));
+			.andExpect(redirectedUrl("/api/test/hopo/show/all"));
 
 		// When
 		ResultActions finalResultActions = mockMvc.perform(
-			MockMvcRequestBuilders.get("/api/test/hopo/show_all")
+			MockMvcRequestBuilders.get("/api/test/hopo/show/all")
 				.contentType(MediaType.APPLICATION_JSON)
 		);
 

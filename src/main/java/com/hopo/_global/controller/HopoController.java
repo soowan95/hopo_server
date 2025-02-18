@@ -91,7 +91,7 @@ public class HopoController {
 		}
 	}
 
-	@GetMapping("/hopo/show_all")
+	@GetMapping("/hopo/show/all")
 	@Operation(summary = "조회", description = "전체 조회")
 	protected ResponseEntity<List<HopoDto>> showAll(@PathVariable String entity) {
 		try {
