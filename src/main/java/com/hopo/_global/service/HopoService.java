@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.hopo._config.registry.EntityRegistry;
 import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.entity.Hopo;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HopoService<E extends Hopo> {
 
 	private final RepositoryRegistry repositoryRegistry;
+	private final EntityRegistry entityRegistry;
 
 	/**
 	 * 엔터티 저장
@@ -38,8 +40,9 @@ public class HopoService<E extends Hopo> {
 		NoSuchMethodException,
 		IllegalAccessException {
 		try {
-			Object repository = repositoryRegistry.getRepository(entityName);
-			Method saveMethod = repository.getClass().getMethod("save", Hopo.class);
+			HopoRepository repository = repositoryRegistry.getRepository(entityName);
+			Hopo entity = entityRegistry.getEntity(entityName);
+			Method saveMethod = repository.getClass().getMethod("save", entity.getClass());
 			return (E)saveMethod.invoke(repository, request.map(request));
 		} catch (Exception e) {
 			log.error("Exception: {} \n Message: {}", e.getClass().getSimpleName(), e.getMessage());
@@ -96,9 +99,9 @@ public class HopoService<E extends Hopo> {
 	public E update(HopoDto request, String entityName) {
 		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
-			E entity = show(request, null, entityName);
+			E entity = show(request, "", entityName);
 			request.map(entity, request);
-			Method updateMethod = repository.getClass().getMethod("save", Hopo.class);
+			Method updateMethod = repository.getClass().getMethod("save", entity.getClass());
 			return (E)updateMethod.invoke(repository, entity);
 		} catch (Exception e) {
 			log.error("데이터 갱신 중 문제가 발생했습니다. \n Message: {}", e.getMessage());
@@ -114,7 +117,7 @@ public class HopoService<E extends Hopo> {
 	public boolean delete(HopoDto request, String entityName) {
 		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
-			E entity = show(request, null, entityName);
+			E entity = show(request, "", entityName);
 			Method deleteByIdMethod = repository.getClass().getMethod("deleteById", Long.class);
 			deleteByIdMethod.invoke(repository, entity.getId());
 			return true;

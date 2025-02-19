@@ -20,6 +20,7 @@ public enum HttpCodeHandleExceptionEnum {
 	NOT_EXPECTED_RETURN_TYPE(HttpStatus.INTERNAL_SERVER_ERROR, "응답 형이 올바르지 않습니다."), // 500
 	NO_SUCH_SERVICE(HttpStatus.BAD_REQUEST, "존재 하지 않는 Service 입니다."), // 400
 	NO_SUCH_REPOSITORY(HttpStatus.BAD_REQUEST, "존재 하지 않는 Repository 입니다."), // 400
+	NO_SUCH_ENTITY(HttpStatus.BAD_REQUEST, "존재 하지 않는 Entity 입니다."), // 400
 	NO_SUCH_REQUEST(HttpStatus.BAD_REQUEST, "잘 못 된 요청입니다."), // 400
 	SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "시스템 오류가 발생했습니다. 고객센터에 문의 바랍니다.") // 500
 	;

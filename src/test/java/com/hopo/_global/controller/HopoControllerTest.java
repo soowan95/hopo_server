@@ -27,6 +27,7 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import com.hopo._config.annotation.ControllerTest;
 import com.hopo._config.registry.DtoRegistry;
+import com.hopo._config.registry.EntityRegistry;
 import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._config.registry.ServiceRegistry;
 import com.hopo._global.dto.HopoDto;
@@ -143,8 +144,8 @@ public class HopoControllerTest {
 
 	@Service
 	public static class TestServiceImpl extends HopoService<TestEntity> {
-		public TestServiceImpl(RepositoryRegistry repositoryRegistry) {
-			super(repositoryRegistry);
+		public TestServiceImpl(RepositoryRegistry repositoryRegistry, EntityRegistry entityRegistry) {
+			super(repositoryRegistry, entityRegistry);
 		}
 	}
 
