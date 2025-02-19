@@ -80,9 +80,36 @@ public class HopoServiceTest {
 	public interface TestRepository extends HopoRepository<TestEntity>, JpaRepository<TestEntity, Integer> {
 	}
 
+	@Data
+	@Builder
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class SaveTestRequest extends HopoDto<SaveTestRequest, TestEntity> {
+		private String name;
+		private Integer age;
+	}
+
+	@Test
+	@DisplayName("entity 저장")
+	void save_shouldSaveMethodOfJpaRepository() throws Exception {
+		// Given
+		SaveTestRequest request = new SaveTestRequest("박수희", 29);
+		when(repositoryRegistry.getRepository("test")).thenReturn(testRepository);
+		when(testRepository.save(any(TestEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		// When
+		TestEntity result = hopoService.save(request, "test");
+
+		// Then
+		assertThat(result).isInstanceOf(Hopo.class);
+		assertThat(result.getId()).isEqualTo(1L);
+		assertThat(result.getName()).isEqualTo("박수희");
+		assertThat(result.getAge()).isEqualTo(29);
+	}
+
 	@Test
 	@DisplayName("단건 정보 조회")
-	public void show_sholdReturnEntity() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+	void show_sholdReturnEntity() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
 		// Given
 		TestEntity testEntity = new TestEntity(1L, "김수완", 30);
 		TestDto testDto = new TestDto(1L, "김수완", 30);
@@ -90,7 +117,7 @@ public class HopoServiceTest {
 		when(testRepository.findByParam("id", 1L)).thenReturn(Optional.of(testEntity));
 
 		// When
-		Object thisEntity = hopoService.show(testDto, null, "test");
+		Object thisEntity = hopoService.show(testDto, "", "test");
 
 		// Then
 		assertThat(thisEntity).isNotNull();
@@ -98,7 +125,7 @@ public class HopoServiceTest {
 
 	@Test
 	@DisplayName("모든 정보 조회")
-	public void showAll_shouldReturnAllEntities() {
+	void showAll_shouldReturnAllEntities() {
 		// Given
 		TestEntity testEntity1 = new TestEntity(1L, "김수완", 30);
 		TestEntity testEntity2 = new TestEntity(2L, "박수희", 29);
@@ -117,7 +144,7 @@ public class HopoServiceTest {
 
 	@Test
 	@DisplayName("데이터 삭제")
-	public void delete_shouldDeleteEntity() {
+	void delete_shouldDeleteEntity() {
 		// Given
 		DeleteTestDto deleteRequest = new DeleteTestDto(1);
 
@@ -130,7 +157,7 @@ public class HopoServiceTest {
 
 	@Test
 	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복")
-	public void checkDuplicate_shouldThrowException_whenDuplicate() {
+	void checkDuplicate_shouldThrowException_whenDuplicate() {
 		when(repositoryRegistry.getRepository("test")).thenReturn(testRepository);
 		when(testRepository.findByParam("id", 1L)).thenReturn(Optional.of(new TestEntity(1L, "김수완", 30)));
 
@@ -146,7 +173,7 @@ public class HopoServiceTest {
 
 	@Test
 	@DisplayName("프로퍼티 명을 통한 중복 확인: 중복 아님")
-	public void checkDuplicate_shouldReturnTrue() {
+	void checkDuplicate_shouldReturnTrue() {
 		// When
 		when(repositoryRegistry.getRepository("test")).thenReturn(testRepository);
 
