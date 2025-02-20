@@ -31,9 +31,12 @@ public class ServiceRegistryTest {
 	@Mock
 	private RepositoryRegistry repositoryRegistry;
 
+	@Mock
+	private EntityRegistry entityRegistry;
+
 	@BeforeEach
 	public void setUp() {
-		serviceList = List.of(new TestServiceImpl(repositoryRegistry));
+		serviceList = List.of(new TestServiceImpl(repositoryRegistry, entityRegistry));
 
 		serviceRegistry = new ServiceRegistry(serviceList);
 	}
@@ -42,8 +45,8 @@ public class ServiceRegistryTest {
 	}
 
 	private static class TestServiceImpl extends HopoService<TestEntity> {
-		public TestServiceImpl(RepositoryRegistry repositoryRegistry) {
-			super(repositoryRegistry);
+		public TestServiceImpl(RepositoryRegistry repositoryRegistry, EntityRegistry entityRegistry) {
+			super(repositoryRegistry, entityRegistry);
 		}
 	}
 

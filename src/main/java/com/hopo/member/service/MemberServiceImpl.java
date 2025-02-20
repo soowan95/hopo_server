@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hopo._config.registry.EntityRegistry;
 import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._global.service.HopoService;
 import com.hopo.member.dto.request.SignUpRequest;
@@ -18,9 +19,9 @@ public class MemberServiceImpl extends HopoService<Member> implements MemberServ
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder bCryptPasswordEncoder;
 
-	public MemberServiceImpl(RepositoryRegistry repositoryRegistry, MemberRepository memberRepository,
+	public MemberServiceImpl(RepositoryRegistry repositoryRegistry, EntityRegistry entityRegistry, MemberRepository memberRepository,
 		PasswordEncoder bCryptPasswordEncoder) {
-		super(repositoryRegistry);
+		super(repositoryRegistry, entityRegistry);
 		this.memberRepository = memberRepository;
 		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
 	}

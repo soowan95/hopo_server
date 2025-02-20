@@ -5,6 +5,7 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hopo._config.registry.EntityRegistry;
 import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.service.HopoService;
@@ -22,8 +23,8 @@ public class BelongServiceImpl extends HopoService<Belong> implements BelongServ
 
 	private final BelongRepository belongRepository;
 
-	public BelongServiceImpl(RepositoryRegistry repositoryRegistry, BelongRepository belongRepository) {
-		super(repositoryRegistry);
+	public BelongServiceImpl(RepositoryRegistry repositoryRegistry, EntityRegistry entityRegistry, BelongRepository belongRepository) {
+		super(repositoryRegistry, entityRegistry);
 		this.belongRepository = belongRepository;
 	}
 

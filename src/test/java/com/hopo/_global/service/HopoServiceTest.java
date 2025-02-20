@@ -14,10 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 
+import com.hopo._config.registry.EntityRegistry;
 import com.hopo._config.registry.RepositoryRegistry;
 import com.hopo._global.dto.HopoDto;
 import com.hopo._global.entity.Hopo;
@@ -39,6 +39,9 @@ public class HopoServiceTest {
 
 	@Mock
 	private RepositoryRegistry repositoryRegistry;
+
+	@Mock
+	private EntityRegistry entityRegistry;
 
 	@Mock
 	private TestRepository testRepository;
@@ -93,18 +96,17 @@ public class HopoServiceTest {
 	@DisplayName("entity 저장")
 	void save_shouldSaveMethodOfJpaRepository() throws Exception {
 		// Given
-		SaveTestRequest request = new SaveTestRequest("박수희", 29);
+		SaveTestRequest request = spy(new SaveTestRequest("박수희", 29));
 		when(repositoryRegistry.getRepository("test")).thenReturn(testRepository);
-		when(testRepository.save(any(TestEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(entityRegistry.getEntity("test")).thenReturn(new TestEntity());
 
 		// When
-		TestEntity result = hopoService.save(request, "test");
+		hopoService.save(request, "test");
 
 		// Then
-		assertThat(result).isInstanceOf(Hopo.class);
-		assertThat(result.getId()).isEqualTo(1L);
-		assertThat(result.getName()).isEqualTo("박수희");
-		assertThat(result.getAge()).isEqualTo(29);
+		assertThatCode(() -> verify(repositoryRegistry, only()).getRepository("test")).doesNotThrowAnyException();
+		assertThatCode(() -> verify(entityRegistry, only()).getEntity("test")).doesNotThrowAnyException();
+		verify(request, times(1)).map(request);
 	}
 
 	@Test
