@@ -77,10 +77,11 @@ public class HopoServiceTest {
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public static class DeleteTestDto extends HopoDto<TestDto, TestEntity> {
-		private Integer id;
+		private Long id;
 	}
 
 	public interface TestRepository extends HopoRepository<TestEntity>, JpaRepository<TestEntity, Integer> {
+		void deleteById(Long id);
 	}
 
 	@Data
@@ -143,12 +144,30 @@ public class HopoServiceTest {
 		assertThat(allEntities.get(0)).isEqualTo(testEntity1);
 		assertThat(allEntities.get(1)).isEqualTo(testEntity2);
 	}
+	@Test
+	@DisplayName("update")
+	void update_shouldUpdateMethodOfJpaRepository() {
+		// Given
+		TestDto request = spy(new TestDto(1L, "김수완", 30));
+		TestEntity entity = new TestEntity(1L, "박수희", 29);
+		when(repositoryRegistry.getRepository("test")).thenReturn(testRepository);
+		when(testRepository.findByParam("id", 1L)).thenReturn(Optional.of(entity));
+
+		// When
+		hopoService.update(request, "test");
+
+		// Then
+		verify(request).map(entity, request);
+	}
 
 	@Test
 	@DisplayName("데이터 삭제")
 	void delete_shouldDeleteEntity() {
 		// Given
-		DeleteTestDto deleteRequest = new DeleteTestDto(1);
+		DeleteTestDto deleteRequest = new DeleteTestDto(1L);
+		TestEntity entity = new TestEntity(1L, "김수완", 30);
+		when(repositoryRegistry.getRepository("test")).thenReturn(testRepository);
+		when(testRepository.findByParam("id", 1L)).thenReturn(Optional.of(entity));
 
 		// When
 		boolean isDeleted = hopoService.delete(deleteRequest, "test");

@@ -69,7 +69,7 @@ public class HopoService<E extends Hopo> {
 		Object repository = repositoryRegistry.getRepository(entityName);
 		try {
 			Method findByParamMethod = repository.getClass().getMethod("findByParam", String.class, Object.class);
-			return (E)((Optional<?>) findByParamMethod.invoke(repository, args[0].toString(), args[1])).orElse(null);
+			return ((Optional<E>) findByParamMethod.invoke(repository, args[0].toString(), args[1])).orElse(null);
 		} catch (Exception e) {
 			log.error("데이터를 불러오는데 실패했습니다. \n Message: {}", e.getMessage());
 			throw e;
