@@ -39,7 +39,7 @@ public class HopoRepositoryImpl<E extends Hopo> implements HopoRepository<E> {
 	}
 
 	private String makeEntityName(String className) {
-		return HopoStringUtils.uncapitalize(className.replace("Repository", ""));
+		return HopoStringUtils.split(className)[0];
 	}
 
 	/**
