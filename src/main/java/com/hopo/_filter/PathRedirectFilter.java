@@ -57,6 +57,6 @@ public class PathRedirectFilter extends GenericFilter {
 	}
 
 	private boolean isApiRequest(String uri) {
-		return uri.matches("/api[/[^/]+]+");
+		return uri.matches("^/api(/[^/]+)+$");
 	}
 }

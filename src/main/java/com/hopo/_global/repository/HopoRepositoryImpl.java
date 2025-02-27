@@ -1,5 +1,7 @@
 package com.hopo._global.repository;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -14,7 +16,9 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -34,26 +38,26 @@ public class HopoRepositoryImpl<E extends Hopo> implements HopoRepository<E> {
 			.anyMatch(field -> field.getName().equals(fieldName));
 	}
 
-	private String makeQClassName(String field) {
-		return "Q" + HopoStringUtils.capitalize(field);
+	private String makeEntityName(String className) {
+		return HopoStringUtils.uncapitalize(className.replace("Repository", ""));
 	}
 
 	/**
 	 * column 과 data 로 entity 를 가져온다
 	 * @param field {@link String String} column 명
-	 * @param v {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
+	 * @param value {@link Object Object} column 의 데이터 형을 특정할 수 없기 때문에 Object 타입으로 받는다
 	 * @return Optional - entity
 	 */
 	@Override
-	public Optional<E> findByParam(String field, Object v) {
+	public Optional<E> findByParam(String field, Object value) {
 		try {
-			String qClassName = makeQClassName(field);
+			String entityName = makeEntityName(this.getClass().getSimpleName());
 
-			EntityPathBase<?> qClass = qClassRegistry.getQClass(qClassName);
+			EntityPathBase<?> qClass = qClassRegistry.getQClass(entityName);
 
 			PathBuilder<Object> fieldPath = new PathBuilder<>(qClass.getType(), qClass.getMetadata());
 			if (!isValidField(fieldPath, field)) return Optional.empty();
-			BooleanExpression condition = fieldPath.get(field).eq(v);
+			BooleanExpression condition = fieldPath.get(field).eq(value);
 
 			JPAQuery<E> jpaQuery = queryFactory.selectFrom((EntityPathBase<E>) qClass).where(condition);
 
