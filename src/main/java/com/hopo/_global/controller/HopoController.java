@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/{entity}")
 @RequiredArgsConstructor
-@Tag(name = "최상위 controller", description = "기본 CRUD 호출이 가능한 controller")
 @Slf4j
 public class HopoController {
 
@@ -40,7 +39,6 @@ public class HopoController {
 	private final DtoRegistry dtoRegistry;
 
 	@PostMapping("/hopo/save")
-	@Operation(summary = "저장", description = "데이터 저장")
 	protected ResponseEntity<?> save(@PathVariable String entity, @RequestBody String requestBody) {
 		try {
 			// Request class 결정
@@ -66,7 +64,6 @@ public class HopoController {
 	}
 
 	@GetMapping("/hopo/show")
-	@Operation(summary = "조회", description = "단건 조회")
 	protected ResponseEntity<?> show(@PathVariable String entity, @RequestParam(defaultValue = "") String f, @RequestParam Object v) {
 		try {
 			// Request class 결정
@@ -92,7 +89,6 @@ public class HopoController {
 	}
 
 	@GetMapping("/hopo/show/all")
-	@Operation(summary = "조회", description = "전체 조회")
 	protected ResponseEntity<List<HopoDto>> showAll(@PathVariable String entity) {
 		try {
 			// Service class 결정
@@ -115,7 +111,6 @@ public class HopoController {
 	}
 
 	@PutMapping("/hopo/update")
-	@Operation(summary = "갱신", description = "정보 갱신")
 	protected ResponseEntity<?> update(@PathVariable String entity, @RequestBody String requestBody) {
 		try {
 			// Request class 결정
@@ -141,7 +136,6 @@ public class HopoController {
 	}
 
 	@DeleteMapping("/hopo/delete")
-	@Operation(summary = "삭제", description = "단건 삭제")
 	protected ResponseEntity<Void> delete(@PathVariable String entity, @RequestParam Object id) {
 		try {
 			// Request class 결정
