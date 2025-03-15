@@ -1,25 +1,27 @@
 package com.hopo._config.registry;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.lang.reflect.InvocationTargetException;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.hopo._global.exception.HttpCodeHandleException;
 import com.hopo._global.service.HopoService;
 import com.hopo._utils.HopoStringUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Service
+@Component
+@RequiredArgsConstructor
 @Slf4j
 public class ServiceRegistry {
-	private final Map<String, HopoService> serviceMap;
+	private final RepositoryRegistry repositoryRegistry;
+	private final EntityRegistry entityRegistry;
 
-	public ServiceRegistry(List<HopoService> serviceList) {
-		this.serviceMap = serviceList.stream()
-			.collect(Collectors.toMap(service -> service.getClass().getSimpleName(), service -> service));
+	private String getPackagePath(String entityName, String className) {
+		return "com.hopo.entityName.service.className"
+			.replace("entityName", entityName)
+			.replace("className", className);
 	}
 
 	private String buildServiceName(String entityName) {
@@ -27,11 +29,15 @@ public class ServiceRegistry {
 	}
 
 	public HopoService getService(String entityName) {
-		HopoService hopoService = serviceMap.get(buildServiceName(entityName));
-		if (hopoService == null) {
-			log.error("{} service not found", buildServiceName(entityName));
+		try {
+			String path = getPackagePath(entityName, buildServiceName(entityName));
+			Class<?> serviceClass = Class.forName(path);
+			return (HopoService) serviceClass
+				.getDeclaredConstructor(RepositoryRegistry.class, EntityRegistry.class)
+				.newInstance(repositoryRegistry, entityRegistry);
+		} catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+			log.error("{} service not found. \nmsg: {}", buildServiceName(entityName), e.getMessage());
 			throw new HttpCodeHandleException("NO_SUCH_SERVICE");
 		}
-		return hopoService;
 	}
 }

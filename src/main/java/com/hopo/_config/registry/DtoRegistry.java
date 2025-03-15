@@ -1,8 +1,6 @@
 package com.hopo._config.registry;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.lang.reflect.InvocationTargetException;
 
 import org.springframework.stereotype.Component;
 
@@ -16,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DtoRegistry {
 
-	private final Map<String, HopoDto> dtoMap;
-
-	public DtoRegistry(List<HopoDto> dtoList) {
-		this.dtoMap = dtoList.stream()
-			.collect(Collectors.toMap(dto -> dto.getClass().getSimpleName(), dto -> dto));
+	private String getPackagePath(String entityName, String className, String dtoType) {
+		return "com.hopo.entityName.dto.dtoType.className"
+			.replace("entityName", entityName)
+			.replace("dtoType", dtoType)
+			.replace("className", className);
 	}
 
 	private String buildRequestName(String entityName, String methodName) {
@@ -32,20 +30,28 @@ public class DtoRegistry {
 	}
 
 	public HopoDto getRequest(String entityName, String methodName) {
-		HopoDto request = dtoMap.get(buildRequestName(entityName, methodName));
-		if (request == null) {
-			log.error("{} dto not found", buildRequestName(entityName, methodName));
+		try {
+			String path = getPackagePath(entityName, buildRequestName(entityName, methodName), "request");
+			Class<?> requestClass = Class.forName(path);
+			return (HopoDto) requestClass.getDeclaredConstructor().newInstance();
+		} catch (ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+			log.error(getErrorMsg(buildRequestName(entityName, methodName), e.getMessage()));
 			throw new HttpCodeHandleException("NO_SUCH_REQUEST");
 		}
-		return request;
 	}
 
 	public HopoDto getResponse(String entityName, String methodName) {
-		HopoDto response = dtoMap.get(buildResponseName(entityName, methodName));
-		if (response == null) {
-			log.error("{} dto not found", buildResponseName(entityName, methodName));
+		try {
+			String path = getPackagePath(entityName, buildResponseName(entityName, methodName), "response");
+			Class<?> responseClass = Class.forName(path);
+			return (HopoDto) responseClass.getDeclaredConstructor().newInstance();
+		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+			log.error(getErrorMsg(buildRequestName(entityName, methodName), e.getMessage()));
 			throw new HttpCodeHandleException("NO_SUCH_RESPONSE");
 		}
-		return response;
+	}
+
+	private String getErrorMsg(String className, String errorMessage) {
+		return className + " dto not found. \nmsg: " + errorMessage;
 	}
 }
